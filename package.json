@@ -1,0 +1,30 @@
+{
+  "name": "daily-job-search-bot",
+  "version": "1.0.0",
+  "description": "Automated daily job search + tailored resume generator. Runs every morning via GitHub Actions. 100% free.",
+  "main": "scripts/jobSearch.js",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/jobSearch.js"
+  },
+  "dependencies": {
+    "docx": "^8.5.0",
+    "dotenv": "^16.4.5",
+    "nodemailer": "^8.0.2"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "keywords": [
+    "job-search",
+    "resume",
+    "automation",
+    "github-actions",
+    "nodejs",
+    "job-hunt",
+    "career",
+    "indeed"
+  ],
+  "author": "Sebaa Dahboor",
+  "license": "MIT"
+}

@@ -1,0 +1,149 @@
+{
+  "personal": {
+    "name": "Your Full Name",
+    "phone": "+1(555) 000-0000",
+    "email": "john.smith@gmail.com",
+    "location": "New York, NY"
+  },
+
+  "skills": {
+    "backend": ["Node.js", "NestJS", "Express.js", "Spring Boot"],
+    "languages": ["JavaScript (ES6+)", "TypeScript", "Java", "Python"],
+    "databases": ["PostgreSQL", "MongoDB", "MySQL"],
+    "orm": ["Prisma", "TypeORM", "Sequelize"],
+    "event_streaming": ["Kafka", "RabbitMQ"],
+    "testing": ["Jest", "Mocha", "Cypress", "Selenium"],
+    "architecture": [
+      "RESTful APIs",
+      "Microservices",
+      "Event-Driven Systems",
+      "MVC"
+    ],
+    "ci_cd": ["GitHub Actions", "Docker", "Jenkins"],
+    "monitoring": ["Datadog", "New Relic", "Splunk"],
+    "ai_tools": ["GitHub Copilot", "Claude"],
+    "agile": ["Scrum", "Jira", "Git"]
+  },
+
+  "experience": [
+    {
+      "title": "Your Job Title",
+      "company": "Company Name",
+      "location": "City, State",
+      "dates": "Jan 2023 – Present",
+      "client": null,
+      "bullets": [
+        "Action verb + what you built/did + impact (e.g. Reduced latency by 40% by rewriting X).",
+        "Action verb + what you built/did + impact (e.g. Built X system handling Y requests/day).",
+        "Action verb + what you built/did + impact (e.g. Led migration from X to Y, saving $Z/mo)."
+      ]
+    },
+    {
+      "title": "Your Job Title",
+      "company": "Company Name",
+      "location": "City, State",
+      "dates": "Jun 2020 – Dec 2022",
+      "client": null,
+      "bullets": [
+        "Action verb + what you built/did + impact.",
+        "Action verb + what you built/did + impact.",
+        "Action verb + what you built/did + impact."
+      ]
+    }
+  ],
+
+  "education": {
+    "degree": "Your Degree (e.g. BSc, Computer Science)",
+    "school": "Your University Name",
+    "location": "City, State",
+    "gpa": "3.8 / 4.0"
+  },
+
+  "certifications": [
+    "Your Certification (e.g. AWS Certified Developer – Associate (2023))"
+  ],
+
+  "job_preferences": {
+    "search_titles": ["Senior Software Engineer", "Senior Backend Engineer"],
+    "locations": ["New York, NY", "remote"],
+    "min_salary": 130000,
+    "title_include": [
+      "senior",
+      "staff",
+      "lead",
+      "principal",
+      "backend",
+      "engineer"
+    ],
+    "title_exclude": ["junior", "entry level", "intern", "jr."]
+  },
+
+  "search_config": {
+    "themes": {
+      "payments": {
+        "keywords": ["payment", "billing", "fintech", "stripe"],
+        "skills": ["Node.js", "Kafka", "PostgreSQL"],
+        "score": 10
+      },
+      "eventDriven": {
+        "keywords": ["kafka", "event-driven", "pub/sub", "real-time"],
+        "skills": ["Kafka", "Node.js", "TypeScript"],
+        "score": 10
+      },
+      "devex": {
+        "keywords": ["ci/cd", "github actions", "platform engineering", "docker"],
+        "skills": ["GitHub Actions", "Docker", "TypeScript"],
+        "score": 10
+      },
+      "microservices": {
+        "keywords": ["microservice", "kubernetes", "cloud native", "aws"],
+        "skills": ["Node.js", "Docker", "Kafka"],
+        "score": 8
+      },
+      "fullStack": {
+        "keywords": ["full stack", "react", "frontend", "graphql"],
+        "skills": ["Node.js", "TypeScript", "PostgreSQL"],
+        "score": 6
+      },
+      "backend": {
+        "keywords": ["node.js", "java", "python", "golang"],
+        "skills": ["Node.js", "TypeScript", "PostgreSQL"],
+        "score": 10
+      },
+      "testing": {
+        "keywords": ["tdd", "jest", "cypress", "qa"],
+        "skills": ["Jest", "Cypress", "TypeScript"],
+        "score": 6
+      },
+      "monitoring": {
+        "keywords": ["observability", "datadog", "splunk", "sre"],
+        "skills": ["Datadog", "Splunk", "Node.js"],
+        "score": 7
+      }
+    },
+
+    "summaries": {
+      "payments": "Your payments-focused summary here — highlight fintech, billing, or financial systems experience.",
+      "eventDriven": "Your event-driven summary here — highlight Kafka, async pipelines, or pub/sub experience.",
+      "devex": "Your DevEx summary here — highlight CI/CD, tooling, or platform engineering experience.",
+      "microservices": "Your microservices summary here — highlight distributed systems or cloud-native experience.",
+      "fullStack": "Your full-stack summary here — highlight frontend + backend experience.",
+      "backend": "Your backend summary here — highlight your primary language and framework experience.",
+      "testing": "Your testing summary here — highlight TDD, test coverage, or QA experience.",
+      "monitoring": "Your monitoring summary here — highlight observability or SRE experience.",
+      "default": "Your general summary here — used when no specific theme matches the job."
+    },
+
+    "match_reasons": {
+      "payments": "Your X years in payments/fintech at [Company] handling X transactions/day aligns with this role.",
+      "eventDriven": "Your Kafka/event-driven work at [Company] reducing processing time by X% matches this role's focus.",
+      "devex": "Your CI/CD and platform engineering experience at [Company] improving deploy speed by X% fits this role.",
+      "microservices": "Your microservices experience at [Company] scaling to X users aligns with this role's requirements.",
+      "fullStack": "Your full-stack background at [Company] delivering X feature end-to-end fits this role well.",
+      "backend": "Your backend experience at [Company] building X system aligns with this role's core requirements.",
+      "testing": "Your track record raising test coverage from X% to Y% at [Company] fits this quality-focused role.",
+      "monitoring": "Your observability work at [Company] reducing incident response time by X% aligns with this role.",
+      "default": "Your engineering background matches several key requirements in this job description."
+    }
+  }
+}

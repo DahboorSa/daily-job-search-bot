@@ -1,0 +1,47 @@
+name: 🤖 Daily Job Hunt
+
+on:
+  # ✏️ Uncomment the lines below to enable daily scheduling once your secrets are set up
+  # schedule:
+  #   - cron: '0 13 * * 1-5' # Mon–Fri 9:00 AM EDT / 8:00 AM EST (UTC-based, always)
+  workflow_dispatch:
+
+jobs:
+  job-hunt:
+    name: Search & Generate Resumes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js (latest LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 💾 Restore seen jobs cache
+        uses: actions/cache@v4
+        with:
+          path: data/searched_jobs.json
+          key: searched-jobs-${{ github.run_id }}
+          restore-keys: searched-jobs-
+
+      - name: 🔍 Run job hunt
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GMAIL_RECIPIENT: ${{ secrets.GMAIL_RECIPIENT }}
+        run: node scripts/jobSearch.js
+
+      - name: 💾 Save seen jobs cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/searched_jobs.json
+          key: searched-jobs-${{ github.run_id }}

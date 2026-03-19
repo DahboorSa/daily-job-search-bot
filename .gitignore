@@ -1,0 +1,13 @@
+# Local secrets — NEVER commit!
+.env
+
+# Dependencies
+node_modules/
+yarn.lock
+
+# Generated resumes
+output/
+data/searched_jobs.json
+
+# macOS
+.DS_Store
