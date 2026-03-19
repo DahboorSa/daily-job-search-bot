@@ -152,7 +152,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function run() {
   const line = '='.repeat(60);
   console.log(line);
-  console.log(`🤖 Daily Job Hunt Bot — ${new Date().toUTCString()}`);
+  console.log(`🤖 Daily Job Search Bot — ${new Date().toUTCString()}`);
   console.log(
     `📄 Resumes: ${GENERATE_RESUMES ? 'ON' : 'OFF'} | Min score: ${MIN_MATCH_SCORE} | Max jobs: ${MAX_JOBS_PER_RUN}`,
   );

@@ -1,4 +1,4 @@
-# 🤖 Daily Job Hunt Bot
+# 🤖 Daily Job Search Bot
 
 ### Automated job search + tailored resume generator — runs every morning while you sleep
 
@@ -140,7 +140,7 @@ on:
 
 ### Step 6 — Test it now!
 
-1. **Actions** tab → **"🤖 Daily Job Hunt"**
+1. **Actions** tab → **"🤖 Daily Job Search"**
 2. **"Run workflow"** → **"Run workflow"**
 3. Watch the logs (~3 minutes) → check your inbox! 📬
 

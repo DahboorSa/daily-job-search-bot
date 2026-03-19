@@ -1,4 +1,4 @@
-name: 🤖 Daily Job Hunt
+name: 🤖 Daily Job Search
 
 on:
   # ✏️ Uncomment the lines below to enable daily scheduling once your secrets are set up
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  job-hunt:
+  job-search:
     name: Search & Generate Resumes
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -31,7 +31,7 @@ jobs:
           key: searched-jobs-${{ github.run_id }}
           restore-keys: searched-jobs-
 
-      - name: 🔍 Run job hunt
+      - name: 🔍 Run job search
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}

@@ -80,7 +80,7 @@ function buildHtmlReport(jobs, dateStr) {
 
     <div style="background:linear-gradient(135deg,#1F4E79,#2980b9);color:white;
                 border-radius:10px;padding:28px;margin-bottom:24px;text-align:center;">
-      <h1 style="margin:0 0 8px 0;font-size:24px;">🤖 Daily Job Hunt Report</h1>
+      <h1 style="margin:0 0 8px 0;font-size:24px;">🤖 Daily Job Search Report</h1>
       <p style="margin:0;opacity:0.85;font-size:15px;">${dateStr}</p>
       <p style="margin:8px 0 0 0;font-size:14px;opacity:0.75;">
         Found <strong>${jobs.length}</strong> matching role${jobs.length !== 1 ? 's' : ''} today
@@ -97,7 +97,7 @@ function buildHtmlReport(jobs, dateStr) {
 
     <div style="text-align:center;color:#aaa;font-size:12px;margin-top:20px;
                 padding-top:16px;border-top:1px solid #ddd;">
-      <p>Generated automatically by your Job Hunt Bot 🤖<br>
+      <p>Generated automatically by your Job Search Bot 🤖<br>
       Powered by GitHub Actions · 100% Free</p>
     </div>
   </div>
@@ -138,10 +138,10 @@ export async function sendDailyReport(jobs, resumeFiles) {
     auth: { user: sender, pass: password },
   });
 
-  const subject = `🤖 Job Hunt Report — ${jobs.length} Match${jobs.length !== 1 ? 'es' : ''} Found · ${dateStr}`;
+  const subject = `🤖 Job Search Report — ${jobs.length} Match${jobs.length !== 1 ? 'es' : ''} Found · ${dateStr}`;
 
   await transporter.sendMail({
-    from: `Job Hunt Bot <${sender}>`,
+    from: `Job Search Bot <${sender}>`,
     to: recipient,
     subject,
     html: buildHtmlReport(jobs, dateStr),
