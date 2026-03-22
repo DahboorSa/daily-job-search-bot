@@ -6,10 +6,15 @@ import { fileURLToPath } from 'url';
 import { generateResumeForJob } from './resumeGenerator.js';
 import { analyzeJob } from './searchEngine.js';
 import { sendDailyReport } from './emailSender.js';
+import { getGlassdoorData } from './glassdoorClient.js';
+import { loadJobs, saveJobs, upsertJobs } from './jobsTracker.js';
+import { generateDashboard } from './dashboardGenerator.js';
 import {
   MIN_MATCH_SCORE,
   MAX_JOBS_PER_RUN,
   GENERATE_RESUMES,
+  SEND_EMAIL,
+  FETCH_GLASSDOOR,
   DATE_POSTED,
 } from '../config/settings.js';
 
@@ -194,9 +199,12 @@ async function run() {
   console.log(`✅ New relevant jobs: ${jobs.length}`);
 
   if (jobs.length === 0) {
-    console.log('No new jobs today — sending empty report.');
-    await sendDailyReport([], []);
-    saveSearchedJobs(searchedJobs);
+    if (SEND_EMAIL) {
+      console.log('No new jobs today — sending empty report.');
+      await sendDailyReport([], []);
+    } else {
+      console.log('No new jobs today — skipping email (SEND_EMAIL = false).');
+    }
     return;
   }
 
@@ -222,8 +230,11 @@ async function run() {
         searchedJobs.add(id);
         continue;
       }
-
+      const glassDoorData = FETCH_GLASSDOOR
+        ? await getGlassdoorData(job.title, job.location)
+        : { salaryRange: null };
       let resultData = {
+        id,
         title: job.title,
         company: job.company,
         location: job.location,
@@ -236,10 +247,16 @@ async function run() {
         topSkills: analysis.topSkills,
         resumeFilename: 'N/A — resume generation disabled',
         linkedinUrl,
+        ...glassDoorData,
       };
 
       if (GENERATE_RESUMES) {
-        const result = await generateResumeForJob(profile, job, analysis, OUTPUT_DIR);
+        const result = await generateResumeForJob(
+          profile,
+          job,
+          analysis,
+          OUTPUT_DIR,
+        );
         resultData.resumeFilename = result.filename;
         resumeFiles.push(result.filePath);
       }
@@ -253,13 +270,25 @@ async function run() {
 
   // ── Sort best matches first ──
   results.sort((a, b) => b.matchScore - a.matchScore);
-  console.log(`\n📬 Sending report — ${results.length} match(es)...`);
+
+  // ── Save to jobs tracker ──
+  const trackedJobs = loadJobs();
+  const updatedJobs = upsertJobs(trackedJobs, results);
+  saveJobs(updatedJobs);
+  generateDashboard(updatedJobs);
+  console.log(`\n📋 Jobs tracker updated — ${updatedJobs.length} total job(s)`);
 
   saveSearchedJobs(searchedJobs);
-  await sendDailyReport(results, resumeFiles);
+
+  if (SEND_EMAIL) {
+    console.log(`\n📬 Sending report — ${results.length} match(es)...`);
+    await sendDailyReport(results, resumeFiles);
+  } else {
+    console.log('\n📧 Email disabled — skipping report.');
+  }
 
   console.log(line);
-  console.log('🏁 Done! Check your inbox.');
+  console.log('🏁 Done!');
   console.log(line);
 }
 

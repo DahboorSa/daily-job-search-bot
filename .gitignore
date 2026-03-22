@@ -7,7 +7,14 @@ yarn.lock
 
 # Generated resumes
 output/
+
+# Generated data files
 data/searched_jobs.json
+data/jobs.json
+data/dashboard.html
+
+# Editor
+.vscode/
 
 # macOS
 .DS_Store

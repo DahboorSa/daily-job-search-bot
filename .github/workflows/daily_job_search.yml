@@ -27,9 +27,11 @@ jobs:
       - name: 💾 Restore seen jobs cache
         uses: actions/cache@v4
         with:
-          path: data/searched_jobs.json
-          key: searched-jobs-${{ github.run_id }}
-          restore-keys: searched-jobs-
+          path: |
+            data/searched_jobs.json
+            data/jobs.json
+          key: job-data-${{ github.run_id }}
+          restore-keys: job-data-
 
       - name: 🔍 Run job search
         env:
@@ -43,5 +45,7 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: data/searched_jobs.json
-          key: searched-jobs-${{ github.run_id }}
+          path: |
+            data/searched_jobs.json
+            data/jobs.json
+          key: job-data-${{ github.run_id }}

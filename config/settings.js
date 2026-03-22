@@ -18,3 +18,11 @@ export const GENERATE_RESUMES = true;
 // How recent jobs to fetch from the API
 // Valid values: "today", "3days", "week", "month"
 export const DATE_POSTED = '3days';
+
+// Set to false to skip sending the daily email report
+// The dashboard will still be updated regardless of this setting
+export const SEND_EMAIL = true;
+
+// Set to false to skip Glassdoor API calls (rating + salary)
+// Useful when you're close to your monthly API limit
+export const FETCH_GLASSDOOR = true;

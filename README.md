@@ -9,6 +9,18 @@
 
 ---
 
+## 📸 Preview
+
+**Daily Email Report**
+
+![Daily Email Report](assets/job-search-email.png)
+
+**Job Tracker Dashboard**
+
+![Job Tracker Dashboard](assets/job-dashboard.png)
+
+---
+
 ## 🎯 What It Does
 
 Every weekday morning, this bot automatically:
@@ -17,7 +29,9 @@ Every weekday morning, this bot automatically:
 2. 🎯 **Scores each job** by how well it matches your skills (0–100)
 3. 📄 **Generates a tailored `.docx` resume** for every strong match
 4. 🔗 **Generates a LinkedIn search link** for each company
-5. 📬 **Emails you a beautiful report** with all resumes attached — ready to apply!
+5. 📊 **Fetches average market salary** for each role via Glassdoor
+6. 📬 **Emails you a beautiful report** with all resumes attached — ready to apply!
+7. 📋 **Generates a local dashboard** (`data/dashboard.html`) to track job statuses (New, Saved, Applied, Rejected, Accepted, Not Interested)
 
 You wake up, open your email, and your job search is already done. ☕
 
@@ -25,12 +39,13 @@ You wake up, open your email, and your job search is already done. ☕
 
 ## 💰 Cost
 
-| Service          | Plan                                                      | Cost         |
-| ---------------- | --------------------------------------------------------- | ------------ |
-| GitHub Actions   | Free (2,000 min/month)                                    | **$0**       |
-| RapidAPI JSearch | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more | **$0**       |
-| Gmail SMTP       | Free                                                      | **$0**       |
-| **Total**        |                                                           | **$0/month** |
+| Service            | Plan                                                      | Cost         |
+| ------------------ | --------------------------------------------------------- | ------------ |
+| GitHub Actions     | Free (2,000 min/month)                                    | **$0**       |
+| RapidAPI JSearch   | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more | **$0**       |
+| RapidAPI Glassdoor | Free tier — company ratings & salary insights             | **$0**       |
+| Gmail SMTP         | Free                                                      | **$0**       |
+| **Total**          |                                                           | **$0/month** |
 
 > ⚠️ Watch your monthly request limit on the free tier.
 > Want more searches? [Check JSearch pricing](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing) to upgrade.
@@ -46,6 +61,8 @@ Click **Fork** → set to **Private**
 ### Step 2 — Fill in your profile
 
 Edit `config/profile.json` with your own information — the file is fully commented with example values. Key fields:
+
+> 💡 **Pro tip:** Upload your resume + `config/profile.json` to ChatGPT and ask it to fill in the JSON based on your resume. No manual editing needed!
 
 ```json
 {
@@ -100,11 +117,12 @@ Edit `config/profile.json` with your own information — the file is fully comme
 
 ### Step 3 — Get your free API keys
 
-#### A. RapidAPI Key (JSearch — aggregates Indeed, LinkedIn, Glassdoor & more)
+#### A. RapidAPI Key (JSearch + Glassdoor)
 
 1. Sign up free at [rapidapi.com](https://rapidapi.com)
 2. Search **"JSearch"** → Subscribe to the **Free plan**
-3. Go to **My Apps → Application Keys** → copy your key
+3. Search **"Real-Time Glassdoor Data"** → Subscribe to the **Free plan**
+4. Go to **My Apps → Application Keys** → copy your key (one key works for both APIs!)
 
 > 📍 Can't find the key? Go to the JSearch page → look for `"X-RapidAPI-Key"` in the Code Snippets panel on the right
 
@@ -197,6 +215,14 @@ export const GENERATE_RESUMES = true;
 // How recent jobs to fetch
 // Valid values: "today", "3days", "week", "month"
 export const DATE_POSTED = '3days';
+
+// Set to false to skip sending the daily email report
+// The dashboard will still be updated regardless of this setting
+export const SEND_EMAIL = true;
+
+// Set to false to skip Glassdoor API calls (rating + salary)
+// Useful when you're close to your monthly API limit (100 req/month free)
+export const FETCH_GLASSDOOR = true;
 ```
 
 ### 🎯 Personalize the search engine
@@ -241,8 +267,8 @@ Common schedule options (GitHub Actions cron always runs in **UTC**):
 # Format: minute hour * * days (1-5 = Mon–Fri)
 - cron: '0 14 * * 1-5' # 9:00 AM EST / 10:00 AM EDT
 - cron: '30 13 * * 1-5' # 8:30 AM EST / 9:30 AM EDT
-- cron: '0 9 * * 1-5'  # 9:00 AM UTC (adjust for your timezone)
-- cron: '0 14 * * *'   # 9:00 AM EST every day including weekends
+- cron: '0 9 * * 1-5' # 9:00 AM UTC (adjust for your timezone)
+- cron: '0 14 * * *' # 9:00 AM EST every day including weekends
 ```
 
 ---
@@ -258,12 +284,20 @@ daily-job-search-bot/
 │   ├── jobSearch.js                # Main orchestrator
 │   ├── searchEngine.js             # Matching logic (don't edit)
 │   ├── resumeGenerator.js          # Builds tailored .docx resumes
-│   └── emailSender.js              # Gmail HTML report sender
+│   ├── emailSender.js              # Gmail HTML report sender
+│   ├── glassdoorClient.js          # Glassdoor rating & salary insights
+│   ├── jobsTracker.js              # Persists all jobs to data/jobs.json
+│   ├── dashboardGenerator.js       # Generates static HTML dashboard
+│   └── dashboardClient.js          # Dashboard browser-side JS
+├── templates/
+│   └── dashboard.html              # Dashboard HTML/CSS template
 ├── config/
 │   ├── profile.json                # ✏️ Your personal data, skills, experience & search config
 │   └── settings.js                 # ✏️ Bot tunables: score threshold, max jobs, resumes on/off
 ├── data/
-│   └── searched_jobs.json          # Auto-created: no duplicate alerts
+│   ├── searched_jobs.json          # Auto-created: no duplicate alerts
+│   ├── jobs.json                   # Auto-created: all tracked jobs with status
+│   └── dashboard.html              # Auto-created: open in browser to track jobs
 ├── output/
 │   └── YYYY-MM-DD/                 # Auto-created: daily resume files
 ├── .env.example                    # Template for local testing
@@ -295,13 +329,13 @@ npm start
 
 ## 🛠 Troubleshooting
 
-| Problem                  | Fix                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| No email received        | Check Actions logs for ❌. Verify all 4 secrets are correct.                                     |
-| "0 jobs found"           | Change `DATE_POSTED` in `config/settings.js` — valid values: `"today"`, `"3days"`, `"week"`, `"month"` |
-| All scores too low       | Lower `MIN_MATCH_SCORE` in `config/settings.js`                                                         |
-| RapidAPI limit hit       | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing)  |
-| Can't find App Password  | Enable 2-Step Verification in Google Account first                                                      |
+| Problem                 | Fix                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| No email received       | Check Actions logs for ❌. Verify all 4 secrets are correct.                                           |
+| "0 jobs found"          | Change `DATE_POSTED` in `config/settings.js` — valid values: `"today"`, `"3days"`, `"week"`, `"month"` |
+| All scores too low      | Lower `MIN_MATCH_SCORE` in `config/settings.js`                                                        |
+| RapidAPI limit hit      | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing) |
+| Can't find App Password | Enable 2-Step Verification in Google Account first                                                     |
 
 ---
 
@@ -315,12 +349,12 @@ npm start
 - [x] Deduplication (never see same job twice)
 - [x] Global search support (US, Jordan, Saudi, UK...)
 - [x] Resume generation toggle
-- [ ] Indeed RSS version (truly unlimited, no API key)
-- [ ] LinkedIn search version
-- [ ] Cover letter generator
-- [ ] AI-powered resume tailoring per job
-- [ ] Job tracker dashboard with applied/saved/rejected status
+- [x] Average market salary insights via Glassdoor (RapidAPI)
+- [x] Job tracker dashboard (applied / saved / rejected / accepted / not interested)
+- [ ] Resume profile generator (upload your resume → auto-generate `config/profile.json`)
+- [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
+- [ ] Rejection detection via email parsing
 
 ---
 

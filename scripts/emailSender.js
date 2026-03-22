@@ -43,6 +43,12 @@ function buildHtmlReport(jobs, dateStr) {
         <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${job.salary ?? 'Not specified'}</p>
       </div>
 
+      ${job.salaryRange ? `
+      <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
+        <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">📊 Avg Market Salary</p>
+        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${job.salaryRange}</p>
+      </div>` : ''}
+
       <div style="margin-top:12px;padding:12px;background:#f0f4ff;border-radius:6px;">
         <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">🎯 Why You Match</p>
         <p style="margin:0;font-size:14px;color:#2E2E2E;line-height:1.5;">${job.matchReason ?? ''}</p>
