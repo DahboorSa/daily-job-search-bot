@@ -43,7 +43,7 @@ You wake up, open your email, and your job search is already done. ☕
 | ------------------ | --------------------------------------------------------- | ------------ |
 | GitHub Actions     | Free (2,000 min/month)                                    | **$0**       |
 | RapidAPI JSearch   | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more | **$0**       |
-| RapidAPI Glassdoor | Free tier — company ratings & salary insights             | **$0**       |
+| RapidAPI Glassdoor | Free tier — average market salary insights             | **$0**       |
 | Gmail SMTP         | Free                                                      | **$0**       |
 | **Total**          |                                                           | **$0/month** |
 
