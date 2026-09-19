@@ -12,6 +12,7 @@ output/
 data/searched_jobs.json
 data/jobs.json
 data/dashboard.html
+data/ashby_jobs_record.csv
 
 # Editor
 .vscode/

@@ -7,6 +7,7 @@ import { generateResumeForJob } from './resumeGenerator.js';
 import { analyzeJob } from './searchEngine.js';
 import { sendDailyReport } from './emailSender.js';
 import { getGlassdoorData } from './glassdoorClient.js';
+import { fetchAshbyJobs, normalizeAshbyJob } from './ashbyClient.js';
 import { loadJobs, saveJobs, upsertJobs } from './jobsTracker.js';
 import { generateDashboard } from './dashboardGenerator.js';
 import {
@@ -15,6 +16,8 @@ import {
   GENERATE_RESUMES,
   SEND_EMAIL,
   FETCH_GLASSDOOR,
+  FETCH_ASHBY,
+  ASHBY_DAYS_AGO,
   DATE_POSTED,
 } from '../config/settings.js';
 
@@ -136,7 +139,10 @@ function jobId(job) {
 function isRelevant(job, profile) {
   const title = job.title.toLowerCase();
 
-  if (!profile.job_preferences.title_include.some((kw) => title.includes(kw)))
+  if (
+    profile.job_preferences.title_include &&
+    !profile.job_preferences.title_include.some((kw) => title.includes(kw))
+  )
     return false;
 
   if (job.salaryMin && job.salaryMin < profile.job_preferences.min_salary)
@@ -180,6 +186,14 @@ async function run() {
     const jobs = await searchJobs(keywords, location);
     allJobs.push(...jobs);
     await sleep(1000);
+  }
+
+  if (FETCH_ASHBY) {
+    console.log(`\n🔍 Ashby job boards (last ${ASHBY_DAYS_AGO}d)`);
+    const ashbyMatches = await fetchAshbyJobs({ daysAgo: ASHBY_DAYS_AGO });
+    const ashbyJobs = ashbyMatches.map(normalizeAshbyJob);
+    console.log(`   Found ${ashbyJobs.length} jobs`);
+    allJobs.push(...ashbyJobs);
   }
   console.log(`\n📊 Total raw: ${allJobs.length}`);
 

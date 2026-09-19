@@ -5,12 +5,18 @@
   "main": "scripts/jobSearch.js",
   "type": "module",
   "scripts": {
-    "start": "node scripts/jobSearch.js"
+    "start": "node scripts/jobSearch.js",
+    "dashboard": "node scripts/generateDashboard.js",
+    "setup": "node scripts/setupProfile.js",
+    "mcp:ashby": "node scripts/ashbyMcpServer.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
     "docx": "^8.5.0",
     "dotenv": "^16.4.5",
-    "nodemailer": "^8.0.2"
+    "mammoth": "^1.12.0",
+    "nodemailer": "^8.0.2",
+    "zod": "^4.6.1"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -26,3 +26,9 @@ export const SEND_EMAIL = true;
 // Set to false to skip Glassdoor API calls (rating + salary)
 // Useful when you're close to your monthly API limit
 export const FETCH_GLASSDOOR = true;
+
+// Set to false to skip searching Ashby-hosted job boards (see scripts/ashbyClient.js)
+export const FETCH_ASHBY = true;
+
+// How many days back to look for Ashby job postings
+export const ASHBY_DAYS_AGO = 7;
