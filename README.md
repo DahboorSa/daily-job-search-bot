@@ -26,7 +26,7 @@
 Every weekday morning, this bot automatically:
 
 1. 🔍 **Searches job boards** (Indeed, LinkedIn, Glassdoor & more) for new jobs matching your profile
-2. 🏢 **Searches ~100 top tech companies' own career pages** directly (OpenAI, Notion, Vercel, Ramp, Linear, Cursor & more via Ashby-hosted boards) — catches roles before they hit the aggregators
+2. 🏢 **Searches ~130 top tech companies' own career pages** directly (OpenAI, Notion, Ramp, Linear, Cursor & more via Ashby-hosted boards) — catches roles before they hit the aggregators. Greenhouse-hosted boards (Stripe, Airbnb, Figma & more) are available through the optional MCP server (see below)
 3. 🎯 **Scores each job** by how well it matches your skills (0–100)
 4. 📄 **Generates a tailored `.docx` resume** for every strong match
 5. 🔗 **Generates a LinkedIn search link** for each company
@@ -46,6 +46,7 @@ You wake up, open your email, and your job search is already done. ☕
 | RapidAPI JSearch    | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more | **$0**       |
 | RapidAPI Glassdoor  | Free tier — average market salary insights                | **$0**       |
 | Ashby Job Board API | Free, no key needed — direct company career pages         | **$0**       |
+| Greenhouse Job Board API | Free, no key needed — direct company career pages (MCP server) | **$0**  |
 | Gmail SMTP          | Free                                                      | **$0**       |
 | Groq (optional)     | Free tier — one-time resume → `profile.json` generation   | **$0**       |
 | **Total**           |                                                           | **$0/month** |
@@ -57,9 +58,20 @@ You wake up, open your email, and your job search is already done. ☕
 
 ## 🚀 Setup Guide (~20 minutes, one time only)
 
-### Step 1 — Fork this repository
+### Step 1 — Create your own **private** copy of this repository
 
-Click **Fork** → set to **Private**
+> 🔒 **Keep your copy private.** `config/profile.json` holds your name, email, phone number and work history, and the workflow reads it straight from the repo. A public repo exposes all of it — and rewriting git history later doesn't fully remove it (forks, clones and caches keep old commits).
+>
+> GitHub does not let you make a fork of a public repo private, so don't rely on **Fork → Private**. Instead, create a new **private** repository on GitHub, then clone this project and push it there:
+>
+> ```bash
+> git clone https://github.com/dahboorSa/daily-job-search-bot.git
+> cd daily-job-search-bot
+> git remote set-url origin https://github.com/YOUR_USERNAME/YOUR_PRIVATE_REPO.git
+> git push -u origin main
+> ```
+>
+> Also set a git identity before committing (`git config --global user.name` / `user.email`, ideally your GitHub `ID+username@users.noreply.github.com` address), otherwise git guesses one from your computer's username and hostname. Don't commit your resume file (`config/resume.docx`) either.
 
 ### Step 2 — Fill in your profile
 
@@ -74,6 +86,10 @@ npm run setup path/to/your/resume.docx
 ```
 
 This parses your `.docx` resume and fills in `personal`, `skills`, `experience`, `education`, and `certifications` in `config/profile.json` for you (`job_preferences` and `search_config` are left untouched — see Option B for those). Review the result, then keep going.
+
+> ⚠️ The full text of your resume is sent to Groq's API to be parsed, and the command **overwrites** those five fields in `config/profile.json`. Only `.docx` files are supported.
+>
+> The model's reply is checked against the shape the bot expects (e.g. `education` must be a single object, `experience` a list). If it doesn't match, `profile.json` is left untouched — just run the command again.
 
 #### Option B — Fill it in by hand
 
@@ -213,42 +229,38 @@ Supported countries:
 Edit `config/settings.js`:
 
 ```js
-// Minimum match score to include a job (0–100)
-// Lower = more results but less relevant
-// Higher = fewer results but stronger matches
+// Minimum match score (0–100): lower = more results, higher = stronger matches
 export const MIN_MATCH_SCORE = 50;
 
-// Max jobs to process per day
-// Keep low when GENERATE_RESUMES = true (each resume takes time to generate)
-// Raise it when GENERATE_RESUMES = false (just email, no file generation)
+// Max jobs processed per day, highest scores first (keep low while GENERATE_RESUMES = true)
 export const MAX_JOBS_PER_RUN = 5;
 
-// Set to false to skip .docx resume generation
-// You'll still get the full email report — just no attachments
+// Set to false to skip .docx resumes (the email report still sends, without attachments)
 export const GENERATE_RESUMES = true;
 
-// How recent jobs to fetch
-// Valid values: "today", "3days", "week", "month"
+// How recent jobs to fetch: "today", "3days", "week" or "month"
 export const DATE_POSTED = "3days";
 
-// Set to false to skip sending the daily email report
-// The dashboard will still be updated regardless of this setting
+// Set to false to skip the daily email (the dashboard still updates)
 export const SEND_EMAIL = true;
 
-// Set to false to skip Glassdoor API calls (rating + salary)
-// Useful when you're close to your monthly API limit (100 req/month free)
+// Set to false to skip Glassdoor calls (saves your monthly API limit)
 export const FETCH_GLASSDOOR = true;
 
-// Set to false to skip searching Ashby-hosted job boards (see scripts/ashbyClient.js)
+// Set to false to skip Ashby company boards (see scripts/ashbyClient.js)
 export const FETCH_ASHBY = true;
 
-// How many days back to look for Ashby job postings
+// How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
 ```
 
 ### 🏢 Add or remove companies from the Ashby search
 
 `scripts/ashbyCompanies.js` exports a plain array of company board slugs (the part of `jobs.ashbyhq.com/<slug>`). Add a company by appending its slug, or trim the list to just the companies you care about — fewer companies means a faster run.
+
+### 🌱 Add or remove companies from the Greenhouse search
+
+`scripts/greenhouseCompanies.js` works the same way, with Greenhouse board tokens (the part of `job-boards.greenhouse.io/<token>`). To check a token before adding it, open `https://boards-api.greenhouse.io/v1/boards/<token>/jobs` in a browser — a working board returns JSON, a wrong token returns 404. The list is a starter set, not an official directory.
 
 ### 🎯 Personalize the search engine
 
@@ -314,6 +326,11 @@ daily-job-search-bot/
 │   ├── ashbyClient.js              # Fetches + filters jobs from Ashby-hosted company boards
 │   ├── ashbyCompanies.js           # ✏️ List of company slugs to search on Ashby
 │   ├── ashbyMcpServer.js           # Standalone MCP server exposing Ashby search as an agent tool
+│   ├── greenhouseClient.js         # Fetches + filters US engineering jobs from Greenhouse-hosted boards
+│   ├── greenhouseCompanies.js      # ✏️ List of board tokens to search on Greenhouse
+│   ├── greenhouseMcpServer.js      # Standalone MCP server exposing Greenhouse search as an agent tool
+│   ├── mcpJobsServer.js            # Shared MCP server logic (tool, CSV export) used by both servers above
+│   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
 │   ├── jobsTracker.js              # Persists all jobs to data/jobs.json
 │   ├── dashboardGenerator.js       # Generates static HTML dashboard
@@ -328,6 +345,7 @@ daily-job-search-bot/
 │   ├── searched_jobs.json          # Auto-created: no duplicate alerts
 │   ├── jobs.json                   # Auto-created: all tracked jobs with status
 │   ├── ashby_jobs_record.csv       # Auto-created: latest Ashby MCP server run, if used
+│   ├── greenhouse_jobs_record.csv  # Auto-created: latest Greenhouse MCP server run, if used
 │   └── dashboard.html              # Auto-created: open in browser to track jobs
 ├── output/
 │   └── YYYY-MM-DD/                 # Auto-created: daily resume files
@@ -362,11 +380,14 @@ Other useful commands:
 npm run setup path/to/resume.docx   # (Re)generate config/profile.json from a resume
 npm run dashboard                   # Rebuild data/dashboard.html from saved job data, without a full search
 npm run mcp:ashby                   # Start the Ashby search as a standalone MCP server (see below)
+npm run mcp:greenhouse              # Start the Greenhouse search as a standalone MCP server (see below)
 ```
 
 ---
 
-## 🔌 Ashby MCP Server (optional)
+## 🔌 Ashby & Greenhouse MCP Servers (optional)
+
+### Ashby
 
 `scripts/ashbyMcpServer.js` exposes the Ashby company-board search as a standalone [MCP](https://modelcontextprotocol.io) server, separate from the daily automated run. Point an MCP-compatible client (e.g. Claude Desktop or Claude Code) at it:
 
@@ -383,6 +404,30 @@ npm run mcp:ashby                   # Start the Ashby search as a standalone MCP
 
 It provides a `get_jobs` tool (filter by `daysAgo`) that writes matches to `data/ashby_jobs_record.csv` and exposes that file as a readable resource — handy for asking an agent "find me recent backend roles at OpenAI or Notion" outside the daily email flow.
 
+### Greenhouse
+
+`scripts/greenhouseMcpServer.js` is the same idea for Greenhouse-hosted boards:
+
+```json
+{
+  "mcpServers": {
+    "greenhouse-jobs": {
+      "command": "node",
+      "args": ["scripts/greenhouseMcpServer.js"]
+    }
+  }
+}
+```
+
+Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_jobs_record.csv`. How it filters:
+
+- **US only** — Greenhouse locations are free text like `Seattle, WA`, so it matches a US state code or an explicit `US` / `USA` / `United States`.
+- **Engineering roles only** — the title must contain "software engineer" or "backend", and the department (when a job lists one) must be an engineering one.
+- **Publish date** — uses `first_published`, not `updated_at`, so edited old postings don't reappear as new.
+- **No salary column** — Greenhouse's board API doesn't expose pay ranges.
+
+> ℹ️ Unlike Ashby, the Greenhouse search is **not** part of the daily automated run yet — it's only available through the MCP server.
+
 ---
 
 ## 🛠 Troubleshooting
@@ -394,6 +439,7 @@ It provides a `get_jobs` tool (filter by `daysAgo`) that writes matches to `data
 | All scores too low      | Lower `MIN_MATCH_SCORE` in `config/settings.js`                                                        |
 | RapidAPI limit hit      | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing) |
 | Can't find App Password | Enable 2-Step Verification in Google Account first                                                     |
+| Greenhouse board returns 404 | The token in `scripts/greenhouseCompanies.js` is wrong — check `boards-api.greenhouse.io/v1/boards/<token>/jobs` |
 
 ---
 
@@ -410,8 +456,10 @@ It provides a `get_jobs` tool (filter by `daysAgo`) that writes matches to `data
 - [x] Average market salary insights via Glassdoor (RapidAPI)
 - [x] Job tracker dashboard (applied / saved / rejected / accepted / not interested)
 - [x] Resume profile generator (upload your resume → auto-generate `config/profile.json`)
-- [x] Direct company career page search via Ashby-hosted boards (~100 top tech companies)
+- [x] Direct company career page search via Ashby-hosted boards (~130 top tech companies)
 - [x] Ashby search exposed as a standalone MCP server for agent use
+- [x] Greenhouse board search (US engineering roles) exposed as a standalone MCP server
+- [ ] Add Greenhouse to the daily automated run
 - [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
 - [ ] Rejection detection via email parsing

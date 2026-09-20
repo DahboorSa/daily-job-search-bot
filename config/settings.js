@@ -1,34 +1,25 @@
-// ─── Bot Settings ───────────────────────────────────────────────
-// ✏️  Tune these to control how the bot behaves each run
+// Bot settings — tune these to change how the bot behaves each run
 
-// Minimum match score to include a job (0–100)
-// Lower = more results but less relevant
-// Higher = fewer results but stronger matches
+// Minimum match score (0–100): lower = more results, higher = stronger matches
 export const MIN_MATCH_SCORE = 50;
 
-// Max jobs to process per day
-// Keep low when GENERATE_RESUMES = true (each resume takes time to generate)
-// Raise it when GENERATE_RESUMES = false (just email, no file generation)
+// Max jobs processed per day, highest scores first (keep low while GENERATE_RESUMES = true)
 export const MAX_JOBS_PER_RUN = 5;
 
-// Set to false to skip .docx resume generation
-// You'll still get the full email report — just no attachments
+// Set to false to skip .docx resumes (the email report still sends, without attachments)
 export const GENERATE_RESUMES = true;
 
-// How recent jobs to fetch from the API
-// Valid values: "today", "3days", "week", "month"
+// How recent jobs to fetch: "today", "3days", "week" or "month"
 export const DATE_POSTED = '3days';
 
-// Set to false to skip sending the daily email report
-// The dashboard will still be updated regardless of this setting
+// Set to false to skip the daily email (the dashboard still updates)
 export const SEND_EMAIL = true;
 
-// Set to false to skip Glassdoor API calls (rating + salary)
-// Useful when you're close to your monthly API limit
+// Set to false to skip Glassdoor calls (saves your monthly API limit)
 export const FETCH_GLASSDOOR = true;
 
-// Set to false to skip searching Ashby-hosted job boards (see scripts/ashbyClient.js)
+// Set to false to skip Ashby company boards (see scripts/ashbyClient.js)
 export const FETCH_ASHBY = true;
 
-// How many days back to look for Ashby job postings
+// How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
