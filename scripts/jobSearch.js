@@ -51,13 +51,6 @@ function getCountryCode(location) {
 }
 
 async function searchJobs(keywords, location) {
-  if (!RAPIDAPI_KEY) {
-    console.error(
-      '❌ RAPIDAPI_KEY not set — check your .env or GitHub secrets.',
-    );
-    return [];
-  }
-
   const params = new URLSearchParams({
     query: `${keywords} in ${location}`,
     page: '1',
@@ -118,8 +111,6 @@ function normalizeJob(raw) {
   };
 }
 
-// ─── Searched jobs tracker ───
-
 function loadSearchedJobs() {
   mkdirSync(join(BASE_DIR, 'data'), { recursive: true });
   if (existsSync(SEARCHED_JOBS_PATH)) {
@@ -176,13 +167,10 @@ function findLinkedInUrl(companyName) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function run() {
-  const line = '='.repeat(60);
-  console.log(line);
   console.log(`🤖 Daily Job Search Bot — ${new Date().toUTCString()}`);
   console.log(
     `📄 Resumes: ${GENERATE_RESUMES ? 'ON' : 'OFF'} | Min score: ${MIN_MATCH_SCORE} | Max jobs: ${MAX_JOBS_PER_RUN}`,
   );
-  console.log(line);
 
   const profile = JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
   const { search_titles, locations } = profile.job_preferences;
@@ -191,16 +179,18 @@ async function run() {
   );
 
   const searchedJobs = loadSearchedJobs();
-  console.log(`📂 Previously seen jobs: ${searchedJobs.size}`);
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
-  // ── Search Job ──
   const allJobs = [];
-  for (const [keywords, location] of SEARCHES) {
-    console.log(`\n🔍 "${keywords}" in "${location}"`);
-    const jobs = await searchJobs(keywords, location);
-    allJobs.push(...jobs);
-    await sleep(1000);
+  if (RAPIDAPI_KEY) {
+    for (const [keywords, location] of SEARCHES) {
+      console.log(`\n🔍 "${keywords}" in "${location}"`);
+      const jobs = await searchJobs(keywords, location);
+      allJobs.push(...jobs);
+      await sleep(1000);
+    }
+  } else {
+    console.error('❌ RAPIDAPI_KEY not set — skipping JSearch (check your .env or GitHub secrets).');
   }
 
   if (FETCH_ASHBY) {
@@ -210,22 +200,20 @@ async function run() {
     console.log(`   Found ${ashbyJobs.length} jobs`);
     allJobs.push(...ashbyJobs);
   }
-  console.log(`\n📊 Total raw: ${allJobs.length}`);
 
-  // ── Deduplicate ──
   const uniqueMap = new Map();
   for (const job of allJobs) {
     const id = jobId(job);
     if (!uniqueMap.has(id)) uniqueMap.set(id, job);
   }
   const uniqueJobs = [...uniqueMap.values()];
-  console.log(`🔁 After dedup: ${uniqueJobs.length}`);
 
-  // ── Filter seen + irrelevant ──
   const jobs = uniqueJobs
     .filter((j) => !searchedJobs.has(jobId(j)) && !searchedJobs.has(legacyJobId(j)))
     .filter((j) => isRelevant(j, profile));
-  console.log(`✅ New relevant jobs: ${jobs.length}`);
+  console.log(
+    `\n📊 ${allJobs.length} found → ${uniqueJobs.length} unique → ${jobs.length} new & relevant`,
+  );
 
   if (jobs.length === 0) {
     if (SEND_EMAIL) {
@@ -237,7 +225,7 @@ async function run() {
     return;
   }
 
-  // ── Score all, so low scorers don't use up MAX_JOBS_PER_RUN slots ──
+  // Score everything first so low scorers don't use up MAX_JOBS_PER_RUN slots
   const qualified = [];
   for (const job of jobs) {
     const id = jobId(job);
@@ -257,7 +245,6 @@ async function run() {
     `🎯 ${qualified.length} of ${jobs.length} scored ≥ ${MIN_MATCH_SCORE}`,
   );
 
-  // ── Process the top matches ──
   const results = [];
   const resumeFiles = [];
 
@@ -305,15 +292,10 @@ async function run() {
     }
   }
 
-  // ── Sort best matches first ──
-  results.sort((a, b) => b.matchScore - a.matchScore);
-
-  // ── Save to jobs tracker ──
   const trackedJobs = loadJobs();
   const updatedJobs = upsertJobs(trackedJobs, results);
   saveJobs(updatedJobs);
   generateDashboard(updatedJobs);
-  console.log(`\n📋 Jobs tracker updated — ${updatedJobs.length} total job(s)`);
 
   saveSearchedJobs(searchedJobs);
 
@@ -324,9 +306,7 @@ async function run() {
     console.log('\n📧 Email disabled — skipping report.');
   }
 
-  console.log(line);
-  console.log('🏁 Done!');
-  console.log(line);
+  console.log('\n🏁 Done!');
 }
 
 run().catch((err) => {

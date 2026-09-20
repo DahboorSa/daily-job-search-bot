@@ -12,7 +12,6 @@ export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 }
 
-// Only http(s) links; anything else becomes "#"
 export function safeUrl(url) {
   try {
     const { protocol } = new URL(url);

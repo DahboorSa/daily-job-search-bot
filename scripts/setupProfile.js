@@ -14,7 +14,6 @@ const RESUME_DERIVED_FIELDS = [
 
 // Shape the bot expects; invalid model output never overwrites the profile
 const optionalText = z.union([z.string(), z.number()]).nullable().optional();
-// looseObject keeps extra keys
 const resumeFieldsSchema = z.object({
   personal: z.looseObject({
     name: z.string().min(1),

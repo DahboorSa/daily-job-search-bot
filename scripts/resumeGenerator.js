@@ -98,7 +98,6 @@ function plain(text, opts = {}) {
 function buildSkillsSection(profile, topSkills) {
   const skills = { ...profile.skills };
 
-  // Highlighted skills first
   if (skills.backend) {
     skills.backend = [...skills.backend].sort((a, b) => {
       const aTop = topSkills.includes(a) ? 0 : 1;
@@ -140,7 +139,6 @@ function buildExperienceSection(profile, matchedKeywords) {
       children.push(plain(`Client: ${exp.client}`, { italics: true }));
     }
 
-    // Bullets matching the job's keywords first
     const scored = exp.bullets.map((b) => {
       const bLow = b.toLowerCase();
       const score = kwLower.filter((kw) => bLow.includes(kw)).length;
@@ -246,8 +244,6 @@ function buildDocx(profile, summary, topSkills, matchedKeywords) {
 
 // Builds a tailored resume .docx for a job (no API calls) and returns its path
 export async function generateResumeForJob(profile, job, analysis, outputDir) {
-  console.log(`📝 Generating resume for: ${job.title} @ ${job.company}`);
-
   const summary = getSummary(analysis, profile.search_config);
 
   const doc = buildDocx(

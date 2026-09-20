@@ -30,7 +30,4 @@ startJobsMcpServer({
   fetchJobs: fetchGreenhouseJobs,
   defaultDaysAgo: GREENHOUSE_DEFAULT_DAYS_AGO,
   companiesCount: greenhouseCompanies.length,
-}).catch((error) => {
-  console.error('Fatal error in main():', error);
-  process.exit(1);
 });

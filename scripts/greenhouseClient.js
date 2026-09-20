@@ -83,7 +83,6 @@ export async function fetchGreenhouseJobs({
       for (const job of matched) matches.push({ companyName, job });
     }),
   );
-  // Log failed boards instead of dropping them silently
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
       console.error(`   Greenhouse: ${greenhouseCompanies[i]} failed — ${result.reason?.message ?? result.reason}`);

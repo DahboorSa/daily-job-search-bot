@@ -36,7 +36,4 @@ startJobsMcpServer({
   fetchJobs: fetchAshbyJobs,
   defaultDaysAgo: ASHBY_DEFAULT_DAYS_AGO,
   companiesCount: ashbyCompanies.length,
-}).catch((error) => {
-  console.error('Fatal error in main():', error);
-  process.exit(1);
 });

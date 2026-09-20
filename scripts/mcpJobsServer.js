@@ -13,8 +13,7 @@ function csvEscape(value) {
   return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
-// Stdio MCP server whose `get_jobs` tool exports matches to CSV (Ashby + Greenhouse)
-export async function startJobsMcpServer(source) {
+async function runJobsMcpServer(source) {
   const {
     name,
     recordFile,
@@ -116,4 +115,12 @@ export async function startJobsMcpServer(source) {
 
   await server.connect(new StdioServerTransport());
   console.error(`${name} MCP Server running on stdio`);
+}
+
+// Stdio MCP server whose `get_jobs` tool exports matches to CSV (Ashby + Greenhouse)
+export function startJobsMcpServer(source) {
+  runJobsMcpServer(source).catch((error) => {
+    console.error('Fatal error in main():', error);
+    process.exit(1);
+  });
 }

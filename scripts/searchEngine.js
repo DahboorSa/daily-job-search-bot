@@ -1,10 +1,4 @@
-/**
- * Detect which themes the job description matches and compute a score.
- * @param {string} title
- * @param {string} description
- * @param {object} config - profile.search_config
- * @returns {{ dominantTheme, matchScore, matchedKeywords, matchReason, topSkills }}
- */
+// Detects which themes a job matches and scores it 0–100 (config = profile.search_config)
 export function analyzeJob(title, description, config) {
   const text = `${title} ${description}`.toLowerCase();
   const { themes, match_reasons } = config;
@@ -27,7 +21,6 @@ export function analyzeJob(title, description, config) {
     }
   }
 
-  // Pick dominant theme
   const dominantTheme =
     Object.entries(themeScores).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'default';
 
@@ -35,7 +28,6 @@ export function analyzeJob(title, description, config) {
   const rawScore = Object.values(themeScores).reduce((sum, t) => sum + t, 0);
   const matchScore = Math.min(Math.round((rawScore / 80) * 100), 98);
 
-  // Build match reason
   const topThemes = Object.entries(themeScores)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 2)

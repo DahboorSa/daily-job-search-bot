@@ -35,8 +35,7 @@ async function fetchCompanyJobs(companyName) {
   return data.jobs || [];
 }
 
-// Fetches every configured company's board, filters to US engineering jobs
-// published within the window, and returns { companyName, job } pairs.
+// Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchAshbyJobs({
   daysAgo = ASHBY_DEFAULT_DAYS_AGO,
 } = {}) {
@@ -54,7 +53,6 @@ export async function fetchAshbyJobs({
       for (const job of matched) matches.push({ companyName, job });
     }),
   );
-  // Log failed companies instead of dropping them silently
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
       console.error(`   Ashby: ${ashbyCompanies[i]} failed — ${result.reason?.message ?? result.reason}`);
@@ -75,8 +73,7 @@ function salaryMinFor(job) {
   return salary?.minValue;
 }
 
-// Shapes a raw Ashby job into the same job object jobSearch.js works with
-// (see normalizeJob() in jobSearch.js for the JSearch equivalent).
+// Same job shape as normalizeJob() in jobSearch.js
 export function normalizeAshbyJob({ companyName, job }) {
   return {
     title: job.title,

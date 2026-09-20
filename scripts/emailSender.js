@@ -111,10 +111,7 @@ function buildHtmlReport(jobs, dateStr) {
 </body></html>`;
 }
 
-/**
- * Send the daily report via Gmail SMTP.
- * Env vars required: GMAIL_SENDER, GMAIL_APP_PASSWORD, GMAIL_RECIPIENT
- */
+// Sends the report via Gmail SMTP (GMAIL_SENDER + GMAIL_APP_PASSWORD; GMAIL_RECIPIENT optional)
 export async function sendDailyReport(jobs, resumeFiles) {
   const sender = process.env.GMAIL_SENDER;
   const password = process.env.GMAIL_APP_PASSWORD;

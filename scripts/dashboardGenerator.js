@@ -141,5 +141,5 @@ export function generateDashboard(jobs) {
     ));
 
   writeFileSync(DASHBOARD_PATH, html);
-  console.log(`   📊 Dashboard saved: data/dashboard.html`);
+  console.log(`📊 Dashboard saved: data/dashboard.html (${jobs.length} jobs)`);
 }

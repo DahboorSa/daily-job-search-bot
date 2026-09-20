@@ -34,7 +34,6 @@ export async function getGlassdoorData(jobTitle, location) {
     }
     const fmt = (n) => `$${Math.round(n).toLocaleString()}`;
     const salaryRange = `${fmt(est.min_salary)} – ${fmt(est.max_salary)}/yr`;
-    console.log(`   ✅ Glassdoor salary: ${salaryRange}`);
     return { salaryRange };
   } catch (err) {
     console.error(`   ❌ Glassdoor error: ${err.message}`);
