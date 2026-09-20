@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { readFileSync, existsSync } from 'fs';
 import { basename } from 'path';
+import { escapeHtml, safeUrl } from './htmlUtils.js';
 
 function buildHtmlReport(jobs, dateStr) {
   const jobCards = jobs
@@ -13,7 +14,7 @@ function buildHtmlReport(jobs, dateStr) {
         .map(
           (s) =>
             `<span style="background:#1F4E79;color:white;padding:3px 10px;border-radius:12px;` +
-            `font-size:12px;margin-right:6px;display:inline-block;margin-bottom:4px;">${s}</span>`,
+            `font-size:12px;margin-right:6px;display:inline-block;margin-bottom:4px;">${escapeHtml(s)}</span>`,
         )
         .join('');
 
@@ -23,11 +24,11 @@ function buildHtmlReport(jobs, dateStr) {
       <table width="100%" cellpadding="0" cellspacing="0"><tr>
         <td>
           <h2 style="margin:0 0 4px 0;color:#1F4E79;font-size:18px;">
-            ${i + 1}. ${job.title ?? 'N/A'}
+            ${i + 1}. ${escapeHtml(job.title ?? 'N/A')}
           </h2>
           <p style="margin:0;color:#555;font-size:14px;">
-            <strong>${job.company ?? 'N/A'}</strong> &nbsp;·&nbsp;
-            ${job.location ?? ''} &nbsp;·&nbsp; ${job.jobType ?? 'Full-time'}
+            <strong>${escapeHtml(job.company ?? 'N/A')}</strong> &nbsp;·&nbsp;
+            ${escapeHtml(job.location ?? '')} &nbsp;·&nbsp; ${escapeHtml(job.jobType ?? 'Full-time')}
             ${job.postedAt ? `&nbsp;·&nbsp; Posted ${new Date(job.postedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : ''}
           </p>
         </td>
@@ -40,18 +41,18 @@ function buildHtmlReport(jobs, dateStr) {
 
       <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
         <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">💰 Salary</p>
-        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${job.salary ?? 'Not specified'}</p>
+        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${escapeHtml(job.salary ?? 'Not specified')}</p>
       </div>
 
       ${job.salaryRange ? `
       <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
         <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">📊 Avg Market Salary</p>
-        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${job.salaryRange}</p>
+        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${escapeHtml(job.salaryRange)}</p>
       </div>` : ''}
 
       <div style="margin-top:12px;padding:12px;background:#f0f4ff;border-radius:6px;">
         <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">🎯 Why You Match</p>
-        <p style="margin:0;font-size:14px;color:#2E2E2E;line-height:1.5;">${job.matchReason ?? ''}</p>
+        <p style="margin:0;font-size:14px;color:#2E2E2E;line-height:1.5;">${escapeHtml(job.matchReason ?? '')}</p>
       </div>
 
       <div style="margin-top:12px;">
@@ -60,12 +61,12 @@ function buildHtmlReport(jobs, dateStr) {
       </div>
 
       <div style="margin-top:16px;">
-        <a href="${job.applyUrl ?? '#'}"
+        <a href="${safeUrl(job.applyUrl)}"
            style="background:#1F4E79;color:white;padding:8px 18px;border-radius:5px;
                   text-decoration:none;font-size:13px;font-weight:600;margin-right:8px;">
           ✅ Apply Now
         </a>
-        <a href="${job.linkedinUrl ?? '#'}"
+        <a href="${safeUrl(job.linkedinUrl)}"
            style="background:#0077B5;color:white;padding:8px 18px;border-radius:5px;
                   text-decoration:none;font-size:13px;font-weight:600;">
           🔗 LinkedIn
@@ -73,7 +74,7 @@ function buildHtmlReport(jobs, dateStr) {
       </div>
 
       <p style="margin-top:12px;margin-bottom:0;font-size:12px;color:#888;">
-        📎 Tailored resume attached: <em>${job.resumeFilename ?? ''}</em>
+        📎 Tailored resume attached: <em>${escapeHtml(job.resumeFilename ?? '')}</em>
       </p>
     </div>`;
     })

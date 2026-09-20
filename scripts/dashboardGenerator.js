@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { escapeHtml, safeUrl, jsonForScript } from './htmlUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DASHBOARD_PATH = join(__dirname, '..', 'data', 'dashboard.html');
@@ -35,7 +36,7 @@ function renderJobCard(job, index) {
   const skillBadges = (job.topSkills ?? [])
     .map(
       (s) =>
-        `<span style="background:#1F4E79;color:white;padding:2px 10px;border-radius:12px;font-size:12px;margin-right:4px;display:inline-block;margin-bottom:4px;">${s}</span>`,
+        `<span style="background:#1F4E79;color:white;padding:2px 10px;border-radius:12px;font-size:12px;margin-right:4px;display:inline-block;margin-bottom:4px;">${escapeHtml(s)}</span>`,
     )
     .join('');
 
@@ -47,10 +48,10 @@ function renderJobCard(job, index) {
   <div class="job-card" id="card-${index}" style="border-left: 4px solid ${cfg.color};">
     <div class="card-header">
       <div>
-        <h3>${job.title ?? 'N/A'}</h3>
+        <h3>${escapeHtml(job.title ?? 'N/A')}</h3>
         <p class="meta">
-          <strong>${job.company ?? 'N/A'}</strong> &nbsp;·&nbsp;
-          ${job.location ?? ''} &nbsp;·&nbsp; ${job.jobType ?? 'Full-time'}
+          <strong>${escapeHtml(job.company ?? 'N/A')}</strong> &nbsp;·&nbsp;
+          ${escapeHtml(job.location ?? '')} &nbsp;·&nbsp; ${escapeHtml(job.jobType ?? 'Full-time')}
           ${addedDate ? `&nbsp;·&nbsp; Found ${addedDate}` : ''}
         </p>
       </div>
@@ -60,17 +61,17 @@ function renderJobCard(job, index) {
     <div class="card-grid">
       <div class="info-box">
         <div class="info-label">💰 Job Salary</div>
-        <div class="info-value">${job.salary ?? 'Not specified'}</div>
+        <div class="info-value">${escapeHtml(job.salary ?? 'Not specified')}</div>
       </div>
       ${job.salaryRange ? `<div class="info-box">
         <div class="info-label">📊 Avg Market Salary</div>
-        <div class="info-value">${job.salaryRange}</div>
+        <div class="info-value">${escapeHtml(job.salaryRange)}</div>
       </div>` : ''}
     </div>
 
     <div class="match-box">
       <div class="info-label">🎯 Why You Match</div>
-      <p>${job.matchReason ?? ''}</p>
+      <p>${escapeHtml(job.matchReason ?? '')}</p>
     </div>
 
     <div style="margin-top:10px;">
@@ -88,10 +89,10 @@ function renderJobCard(job, index) {
         </select>
       </div>
       <div class="action-btns">
-        <a href="${job.applyUrl ?? '#'}" target="_blank" class="btn btn-apply">✅ Apply</a>
-        <a href="${job.linkedinUrl ?? '#'}" target="_blank" class="btn btn-linkedin">🔗 LinkedIn</a>
+        <a href="${safeUrl(job.applyUrl)}" target="_blank" class="btn btn-apply">✅ Apply</a>
+        <a href="${safeUrl(job.linkedinUrl)}" target="_blank" class="btn btn-linkedin">🔗 LinkedIn</a>
         ${job.resumeFilename && job.resumeFilename !== 'N/A — resume generation disabled'
-          ? `<span class="resume-tag">📎 ${job.resumeFilename}</span>`
+          ? `<span class="resume-tag">📎 ${escapeHtml(job.resumeFilename)}</span>`
           : ''}
       </div>
     </div>
@@ -128,14 +129,14 @@ export function generateDashboard(jobs) {
 
   const template = readFileSync(TEMPLATE_PATH, 'utf-8');
   const html = template
-    .replace('{{LAST_UPDATED}}', new Date().toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
-    .replace('{{TOTAL_JOBS}}', `${jobs.length} total job${jobs.length !== 1 ? 's' : ''}`)
-    .replace('{{STAT_PILLS}}', statPills)
-    .replace('{{TOTAL_COUNT}}', jobs.length)
-    .replace('{{FILTER_BUTTONS}}', filterButtons)
-    .replace('{{JOB_CARDS}}', sortedJobs.map((job, i) => renderJobCard(job, i)).join(''))
-    .replace('{{JOBS_JSON}}', JSON.stringify(sortedJobs))
-    .replace('{{STATUS_CFG_JSON}}', JSON.stringify(
+    .replace('{{LAST_UPDATED}}', () => new Date().toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }))
+    .replace('{{TOTAL_JOBS}}', () => `${jobs.length} total job${jobs.length !== 1 ? 's' : ''}`)
+    .replace('{{STAT_PILLS}}', () => statPills)
+    .replace('{{TOTAL_COUNT}}', () => String(jobs.length))
+    .replace('{{FILTER_BUTTONS}}', () => filterButtons)
+    .replace('{{JOB_CARDS}}', () => sortedJobs.map((job, i) => renderJobCard(job, i)).join(''))
+    .replace('{{JOBS_JSON}}', () => jsonForScript(sortedJobs))
+    .replace('{{STATUS_CFG_JSON}}', () => jsonForScript(
       Object.fromEntries(Object.entries(STATUS_CONFIG).map(([k, v]) => [k, { color: v.color, bg: v.bg }]))
     ));
 
