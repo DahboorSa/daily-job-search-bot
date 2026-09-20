@@ -8,7 +8,8 @@
     "start": "node scripts/jobSearch.js",
     "dashboard": "node scripts/generateDashboard.js",
     "setup": "node scripts/setupProfile.js",
-    "mcp:ashby": "node scripts/ashbyMcpServer.js"
+    "mcp:ashby": "node scripts/ashbyMcpServer.js",
+    "mcp:greenhouse": "node scripts/greenhouseMcpServer.js"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
@@ -22,7 +23,6 @@
     "node": ">=22.0.0"
   },
   "keywords": [
-    "job-search",
     "resume",
     "automation",
     "github-actions",
