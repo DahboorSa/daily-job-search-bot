@@ -10,8 +10,8 @@ function isEngineeringJob(job) {
       job.country?.toLowerCase().includes('united states') ||
       job.country?.includes('USA') ||
       job.country?.includes('US')) &&
-    (job.department.toLowerCase().includes('engineer') ||
-      job.team.toLowerCase().includes('engineer')) &&
+    (job.department?.toLowerCase().includes('engineer') ||
+      job.team?.toLowerCase().includes('engineer')) &&
     (job.title.toLowerCase().includes('software engineer') ||
       job.title.toLowerCase().includes('backend'))
   );
@@ -45,7 +45,7 @@ export async function fetchAshbyJobs({
   );
 
   const matches = [];
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     ashbyCompanies.map(async (companyName) => {
       const jobs = await fetchCompanyJobs(companyName);
       const matched = jobs
@@ -54,7 +54,25 @@ export async function fetchAshbyJobs({
       for (const job of matched) matches.push({ companyName, job });
     }),
   );
+  // Log failed companies instead of dropping them silently
+  results.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.error(`   Ashby: ${ashbyCompanies[i]} failed — ${result.reason?.message ?? result.reason}`);
+    }
+  });
   return matches;
+}
+
+// Yearly USD salary floor, so the min_salary filter covers Ashby jobs
+function salaryMinFor(job) {
+  const salary = (job.compensation?.summaryComponents ?? []).find(
+    (c) =>
+      c.compensationType === 'Salary' &&
+      c.currencyCode === 'USD' &&
+      c.interval === '1 YEAR' &&
+      c.minValue,
+  );
+  return salary?.minValue;
 }
 
 // Shapes a raw Ashby job into the same job object jobSearch.js works with
@@ -68,6 +86,7 @@ export function normalizeAshbyJob({ companyName, job }) {
       job.compensation?.compensationTierSummary ||
       job.compensation?.scrapeableCompensationSalarySummary ||
       'Not specified',
+    salaryMin: salaryMinFor(job),
     description: job.descriptionPlain ?? '',
     applyUrl: job.applyUrl || job.jobUrl || '#',
     postedAt: job.publishedAt ?? '',

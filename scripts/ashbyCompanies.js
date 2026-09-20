@@ -113,7 +113,6 @@ export const ashbyCompanies = [
   'shiftsmart',
   'ibotta',
   'hinge-health',
-  'rula',
   'm7health',
   'second-nature',
   'hyperbound',
