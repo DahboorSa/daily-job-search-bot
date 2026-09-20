@@ -30,22 +30,23 @@ const OUTPUT_DIR = join(BASE_DIR, 'output', today);
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY ?? '';
 
+// Whole words only: "uk" matched Milwaukee, "india" matched Indianapolis
+const COUNTRY_KEYWORDS = [
+  ['jo', ['jordan', 'amman']],
+  ['sa', ['saudi', 'riyadh', 'jeddah']],
+  ['gb', ['uk', 'united kingdom', 'london']],
+  ['ca', ['canada', 'toronto']],
+  ['au', ['australia', 'sydney']],
+  ['de', ['germany', 'berlin']],
+  ['fr', ['france', 'paris']],
+  ['in', ['india', 'bangalore', 'mumbai']],
+];
+
 function getCountryCode(location) {
   const loc = location.toLowerCase();
-  if (loc.includes('jordan') || loc.includes('amman')) return 'jo';
-  if (loc.includes('saudi') || loc.includes('riyadh') || loc.includes('jeddah'))
-    return 'sa';
-  if (loc.includes('uk') || loc.includes('london')) return 'gb';
-  if (loc.includes('canada') || loc.includes('toronto')) return 'ca';
-  if (loc.includes('australia') || loc.includes('sydney')) return 'au';
-  if (loc.includes('germany') || loc.includes('berlin')) return 'de';
-  if (loc.includes('france') || loc.includes('paris')) return 'fr';
-  if (
-    loc.includes('india') ||
-    loc.includes('bangalore') ||
-    loc.includes('mumbai')
-  )
-    return 'in';
+  for (const [code, keywords] of COUNTRY_KEYWORDS) {
+    if (keywords.some((kw) => new RegExp(`\\b${kw}\\b`).test(loc))) return code;
+  }
   return 'us';
 }
 
@@ -131,7 +132,21 @@ function saveSearchedJobs(seen) {
   writeFileSync(SEARCHED_JOBS_PATH, JSON.stringify([...seen], null, 2));
 }
 
+// Compare by letters/digits so Ashby slugs ("reflectionai") match JSearch names ("Reflection AI, Inc.")
+function normalizeCompany(name) {
+  return name
+    .toLowerCase()
+    .replace(/\b(inc|llc|ltd|corp|corporation|co)\b/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
 function jobId(job) {
+  const key = `${job.title}-${normalizeCompany(job.company)}-${job.location}`.toLowerCase();
+  return createHash('md5').update(key).digest('hex');
+}
+
+// ID format from before company names were normalized; keeps old seen jobs seen
+function legacyJobId(job) {
   const key = `${job.title}-${job.company}-${job.location}`.toLowerCase();
   return createHash('md5').update(key).digest('hex');
 }
@@ -208,7 +223,7 @@ async function run() {
 
   // ── Filter seen + irrelevant ──
   const jobs = uniqueJobs
-    .filter((j) => !searchedJobs.has(jobId(j)))
+    .filter((j) => !searchedJobs.has(jobId(j)) && !searchedJobs.has(legacyJobId(j)))
     .filter((j) => isRelevant(j, profile));
   console.log(`✅ New relevant jobs: ${jobs.length}`);
 
@@ -222,28 +237,36 @@ async function run() {
     return;
   }
 
-  // ── Process each job ──
+  // ── Score all, so low scorers don't use up MAX_JOBS_PER_RUN slots ──
+  const qualified = [];
+  for (const job of jobs) {
+    const id = jobId(job);
+    const analysis = analyzeJob(
+      job.title,
+      job.description ?? '',
+      profile.search_config,
+    );
+    if (analysis.matchScore < MIN_MATCH_SCORE) {
+      searchedJobs.add(id);
+    } else {
+      qualified.push({ job, id, analysis });
+    }
+  }
+  qualified.sort((a, b) => b.analysis.matchScore - a.analysis.matchScore);
+  console.log(
+    `🎯 ${qualified.length} of ${jobs.length} scored ≥ ${MIN_MATCH_SCORE}`,
+  );
+
+  // ── Process the top matches ──
   const results = [];
   const resumeFiles = [];
 
-  for (const job of jobs.slice(0, MAX_JOBS_PER_RUN)) {
-    const id = jobId(job);
+  for (const { job, id, analysis } of qualified.slice(0, MAX_JOBS_PER_RUN)) {
     console.log(`\n📝 ${job.title} @ ${job.company} (${job.location})`);
 
     try {
       const linkedinUrl = findLinkedInUrl(job.company);
 
-      const analysis = analyzeJob(
-        job.title,
-        job.description ?? '',
-        profile.search_config,
-      );
-
-      if (analysis.matchScore < MIN_MATCH_SCORE) {
-        console.log(`   ⚠️  Score ${analysis.matchScore} — skipping.`);
-        searchedJobs.add(id);
-        continue;
-      }
       const glassDoorData = FETCH_GLASSDOOR
         ? await getGlassdoorData(job.title, job.location)
         : { salaryRange: null };

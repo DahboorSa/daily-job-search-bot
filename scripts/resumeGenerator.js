@@ -9,7 +9,7 @@ import {
   TabStopType,
   TabStopPosition,
 } from 'docx';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { getSummary } from './searchEngine.js';
 
@@ -22,8 +22,6 @@ const FONT_SIZE_NAME = 40;
 const FONT_SIZE_HEADER = 24;
 const FONT_SIZE_TITLE = 22;
 const FONT_SIZE_BODY = 20;
-
-// ─── Docx helpers ───
 
 function sectionHeader(text) {
   return new Paragraph({
@@ -97,12 +95,10 @@ function plain(text, opts = {}) {
   });
 }
 
-// ─── Skills section builder ───
-
 function buildSkillsSection(profile, topSkills) {
   const skills = { ...profile.skills };
 
-  // Sort backend skills so highlighted ones appear first
+  // Highlighted skills first
   if (skills.backend) {
     skills.backend = [...skills.backend].sort((a, b) => {
       const aTop = topSkills.includes(a) ? 0 : 1;
@@ -132,8 +128,6 @@ function buildSkillsSection(profile, topSkills) {
   return lines;
 }
 
-// ─── Experience section builder ───
-
 function buildExperienceSection(profile, matchedKeywords) {
   const children = [];
   const kwLower = matchedKeywords.map((k) => k.toLowerCase());
@@ -146,7 +140,7 @@ function buildExperienceSection(profile, matchedKeywords) {
       children.push(plain(`Client: ${exp.client}`, { italics: true }));
     }
 
-    // Score each bullet by keyword matches — float relevant ones to top
+    // Bullets matching the job's keywords first
     const scored = exp.bullets.map((b) => {
       const bLow = b.toLowerCase();
       const score = kwLower.filter((kw) => bLow.includes(kw)).length;
@@ -162,13 +156,10 @@ function buildExperienceSection(profile, matchedKeywords) {
   return children;
 }
 
-// ─── Main docx builder ───
-
 function buildDocx(profile, summary, topSkills, matchedKeywords) {
   const { personal, education, certifications } = profile;
 
   const children = [
-    // Header
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: 0, after: 60 },
@@ -195,19 +186,15 @@ function buildDocx(profile, summary, topSkills, matchedKeywords) {
       ],
     }),
 
-    // Summary
     sectionHeader('PROFESSIONAL SUMMARY'),
     plain(summary),
 
-    // Skills
     sectionHeader('TECHNICAL SKILLS'),
     ...buildSkillsSection(profile, topSkills),
 
-    // Experience
     sectionHeader('EXPERIENCE'),
     ...buildExperienceSection(profile, matchedKeywords),
 
-    // Education
     sectionHeader('EDUCATION'),
     jobTitleLine(
       education.degree,
@@ -215,7 +202,6 @@ function buildDocx(profile, summary, topSkills, matchedKeywords) {
       `${education.location}${education.gpa ? `  ·  GPA: ${education.gpa}` : ''}`,
     ),
 
-    // Certifications
     ...(certifications.length > 0
       ? [
           sectionHeader('CERTIFICATIONS'),
@@ -258,14 +244,7 @@ function buildDocx(profile, summary, topSkills, matchedKeywords) {
   });
 }
 
-/**
- * Generate a resume for a job — no API calls, 100% free.
- * @param {object} profile   - parsed profile.json
- * @param {object} job       - job object (title, company, description, salary, etc.)
- * @param {object} analysis  - result from analyzeJob()
- * @param {string} outputDir
- * @returns {Promise<{ filePath: string, filename: string }>}
- */
+// Builds a tailored resume .docx for a job (no API calls) and returns its path
 export async function generateResumeForJob(profile, job, analysis, outputDir) {
   console.log(`📝 Generating resume for: ${job.title} @ ${job.company}`);
 
@@ -281,8 +260,14 @@ export async function generateResumeForJob(profile, job, analysis, outputDir) {
 
   const companySlug = (job.company ?? 'Company').replace(/[^a-zA-Z0-9]/g, '_');
   const titleSlug = (job.title ?? 'Role').replace(/[^a-zA-Z0-9]/g, '_');
-  const filename = `Resume_${companySlug}_${titleSlug}.docx`;
   mkdirSync(outputDir, { recursive: true });
+
+  // Avoid overwriting resumes for the same company and title
+  const baseName = `Resume_${companySlug}_${titleSlug}`;
+  let filename = `${baseName}.docx`;
+  for (let n = 2; existsSync(join(outputDir, filename)); n++) {
+    filename = `${baseName}_${n}.docx`;
+  }
   const filePath = join(outputDir, filename);
   writeFileSync(filePath, buffer);
 
