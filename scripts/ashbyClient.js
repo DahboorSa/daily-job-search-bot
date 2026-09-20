@@ -1,4 +1,5 @@
 import { ashbyCompanies } from './ashbyCompanies.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.ashbyhq.com/posting-api/job-board';
 export const ASHBY_DEFAULT_DAYS_AGO = 7;
@@ -73,20 +74,20 @@ function salaryMinFor(job) {
   return salary?.minValue;
 }
 
-// Same job shape as normalizeJob() in jobSearch.js
+// Same job shape as normalizeJob() in jobUtils.js
 export function normalizeAshbyJob({ companyName, job }) {
   return {
     title: job.title,
     company: companyName,
-    location: job.location || 'Unknown',
+    location: job.location || UNKNOWN_LOCATION,
     salary:
       job.compensation?.compensationTierSummary ||
       job.compensation?.scrapeableCompensationSalarySummary ||
-      'Not specified',
+      NOT_SPECIFIED,
     salaryMin: salaryMinFor(job),
     description: job.descriptionPlain ?? '',
-    applyUrl: job.applyUrl || job.jobUrl || '#',
+    applyUrl: job.applyUrl || job.jobUrl || FALLBACK_URL,
     postedAt: job.publishedAt ?? '',
-    jobType: job.isRemote ? 'Remote' : 'On-site / Hybrid',
+    jobType: jobTypeFor(job.isRemote),
   };
 }

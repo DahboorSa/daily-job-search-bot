@@ -1,4 +1,5 @@
 import { greenhouseCompanies } from './greenhouseCompanies.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
 const BASE_URL = 'https://boards-api.greenhouse.io/v1/boards';
 export const GREENHOUSE_DEFAULT_DAYS_AGO = 7;
@@ -89,4 +90,54 @@ export async function fetchGreenhouseJobs({
     }
   });
   return matches;
+}
+
+// "Hybrid" wins so "Hybrid (remote-friendly)" isn't listed as fully remote
+const REMOTE_PATTERN = /\bremote\b|work from home|\banywhere\b/i;
+const HYBRID_PATTERN = /\bhybrid\b/i;
+
+function isRemote(job) {
+  const text = `${job.location?.name ?? ''} ${job.title ?? ''}`;
+  return REMOTE_PATTERN.test(text) && !HYBRID_PATTERN.test(text);
+}
+
+const NAMED_ENTITIES = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  mdash: '—', ndash: '–', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
+  hellip: '…', bull: '•', middot: '·', copy: '©', reg: '®', trade: '™',
+  eacute: 'é', egrave: 'è', uuml: 'ü', ouml: 'ö', auml: 'ä', ntilde: 'ñ',
+  euro: '€', pound: '£', yen: '¥', cent: '¢', times: '×', divide: '÷', deg: '°', plusmn: '±',
+  rarr: '→', larr: '←', laquo: '«', raquo: '»', sect: '§', para: '¶', iexcl: '¡', iquest: '¿',
+  agrave: 'à', aacute: 'á', acirc: 'â', atilde: 'ã', aring: 'å', ccedil: 'ç', ecirc: 'ê', euml: 'ë',
+  iacute: 'í', icirc: 'î', oacute: 'ó', ocirc: 'ô', oslash: 'ø', uacute: 'ú', szlig: 'ß',
+  frac12: '½', frac14: '¼', hearts: '♥', check: '✓',
+};
+
+function decodeEntities(str) {
+  return str.replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z][a-z0-9]*));/gi, (match, dec, hex, name) => {
+    if (name) return NAMED_ENTITIES[name.toLowerCase()] ?? match;
+    const code = dec ? parseInt(dec, 10) : parseInt(hex, 16);
+    return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+  });
+}
+
+// Content is entity-encoded: decode, strip tags, then decode the text
+export function htmlToText(content) {
+  const text = decodeEntities(content ?? '')
+    .replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '');
+  return decodeEntities(text).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+export function normalizeGreenhouseJob({ companyName, job }) {
+  return {
+    title: job.title,
+    company: job.company_name || companyName,
+    location: job.location?.name || UNKNOWN_LOCATION,
+    salary: NOT_SPECIFIED,
+    description: htmlToText(job.content),
+    applyUrl: job.absolute_url || FALLBACK_URL,
+    postedAt: Number.isNaN(Date.parse(job.first_published)) ? '' : job.first_published,
+    jobType: jobTypeFor(isRemote(job)),
+  };
 }

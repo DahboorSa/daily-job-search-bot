@@ -2,8 +2,9 @@ import nodemailer from 'nodemailer';
 import { readFileSync, existsSync } from 'fs';
 import { basename } from 'path';
 import { escapeHtml, safeUrl } from './htmlUtils.js';
+import { NOT_SPECIFIED } from './jobDefaults.js';
 
-function buildHtmlReport(jobs, dateStr) {
+export function buildHtmlReport(jobs, dateStr) {
   const jobCards = jobs
     .map((job, i) => {
       const score = job.matchScore ?? 0;
@@ -41,7 +42,7 @@ function buildHtmlReport(jobs, dateStr) {
 
       <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
         <p style="margin:0 0 4px 0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">💰 Salary</p>
-        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${escapeHtml(job.salary ?? 'Not specified')}</p>
+        <p style="margin:0;font-size:15px;font-weight:600;color:#2E2E2E;">${escapeHtml(job.salary ?? NOT_SPECIFIED)}</p>
       </div>
 
       ${job.salaryRange ? `

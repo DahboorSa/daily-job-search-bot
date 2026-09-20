@@ -26,7 +26,7 @@
 Every weekday morning, this bot automatically:
 
 1. 🔍 **Searches job boards** (Indeed, LinkedIn, Glassdoor & more) for new jobs matching your profile
-2. 🏢 **Searches ~130 top tech companies' own career pages** directly (OpenAI, Notion, Ramp, Linear, Cursor & more via Ashby-hosted boards) — catches roles before they hit the aggregators. Greenhouse-hosted boards (Stripe, Airbnb, Figma & more) are available through the optional MCP server (see below)
+2. 🏢 **Searches ~130 top tech companies' own career pages** directly (OpenAI, Notion, Ramp, Linear, Cursor & more via Ashby-hosted boards) — catches roles before they hit the aggregators. Greenhouse-hosted boards (Stripe, Airbnb, Figma & more) are searched too
 3. 🎯 **Scores each job** by how well it matches your skills (0–100)
 4. 📄 **Generates a tailored `.docx` resume** for every strong match
 5. 🔗 **Generates a LinkedIn search link** for each company
@@ -252,6 +252,12 @@ export const FETCH_ASHBY = true;
 
 // How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
+
+// Set to false to skip Greenhouse company boards (see scripts/greenhouseClient.js)
+export const FETCH_GREENHOUSE = true;
+
+// How many days back to look for Greenhouse postings
+export const GREENHOUSE_DAYS_AGO = 7;
 ```
 
 ### 🏢 Add or remove companies from the Ashby search
@@ -316,9 +322,12 @@ Common schedule options (GitHub Actions cron always runs in **UTC**):
 daily-job-search-bot/
 ├── .github/
 │   └── workflows/
-│       └── daily_job_search.yml    # GitHub Actions scheduler
+│       ├── daily_job_search.yml    # GitHub Actions scheduler
+│       └── test.yml                # Runs the tests on push to main
 ├── scripts/
 │   ├── jobSearch.js                # Main orchestrator
+│   ├── jobUtils.js                 # Job ids, filters, scoring and normalizing (pure helpers)
+│   ├── jobDefaults.js              # Fallback values shared by the job normalizers
 │   ├── searchEngine.js             # Matching logic (don't edit)
 │   ├── resumeGenerator.js          # Builds tailored .docx resumes
 │   ├── emailSender.js              # Gmail HTML report sender
@@ -338,6 +347,7 @@ daily-job-search-bot/
 │   └── dashboardClient.js          # Dashboard browser-side JS
 ├── templates/
 │   └── dashboard.html              # Dashboard HTML/CSS template
+├── test/                           # node:test suites (run with `npm test`)
 ├── config/
 │   ├── profile.json                # ✏️ Your personal data, skills, experience & search config
 │   └── settings.js                 # ✏️ Bot tunables: score threshold, max jobs, resumes on/off
@@ -426,7 +436,7 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_job
 - **Publish date** — uses `first_published`, not `updated_at`, so edited old postings don't reappear as new.
 - **No salary column** — Greenhouse's board API doesn't expose pay ranges.
 
-> ℹ️ Unlike Ashby, the Greenhouse search is **not** part of the daily automated run yet — it's only available through the MCP server.
+> ℹ️ Greenhouse is also part of the daily run; set `FETCH_GREENHOUSE = false` in `config/settings.js` to skip it.
 
 ---
 

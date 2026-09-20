@@ -1,13 +1,18 @@
 import 'dotenv/config';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { createHash } from 'crypto';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { generateResumeForJob } from './resumeGenerator.js';
-import { analyzeJob } from './searchEngine.js';
 import { sendDailyReport } from './emailSender.js';
 import { getGlassdoorData } from './glassdoorClient.js';
 import { fetchAshbyJobs, normalizeAshbyJob } from './ashbyClient.js';
+import { fetchGreenhouseJobs, normalizeGreenhouseJob } from './greenhouseClient.js';
+import {
+  getCountryCode,
+  normalizeJob,
+  selectNewJobs,
+  scoreJobs,
+} from './jobUtils.js';
 import { loadJobs, saveJobs, upsertJobs } from './jobsTracker.js';
 import { generateDashboard } from './dashboardGenerator.js';
 import {
@@ -18,6 +23,8 @@ import {
   FETCH_GLASSDOOR,
   FETCH_ASHBY,
   ASHBY_DAYS_AGO,
+  FETCH_GREENHOUSE,
+  GREENHOUSE_DAYS_AGO,
   DATE_POSTED,
 } from '../config/settings.js';
 
@@ -29,26 +36,6 @@ const today = new Date().toISOString().slice(0, 10);
 const OUTPUT_DIR = join(BASE_DIR, 'output', today);
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY ?? '';
-
-// Whole words only: "uk" matched Milwaukee, "india" matched Indianapolis
-const COUNTRY_KEYWORDS = [
-  ['jo', ['jordan', 'amman']],
-  ['sa', ['saudi', 'riyadh', 'jeddah']],
-  ['gb', ['uk', 'united kingdom', 'london']],
-  ['ca', ['canada', 'toronto']],
-  ['au', ['australia', 'sydney']],
-  ['de', ['germany', 'berlin']],
-  ['fr', ['france', 'paris']],
-  ['in', ['india', 'bangalore', 'mumbai']],
-];
-
-function getCountryCode(location) {
-  const loc = location.toLowerCase();
-  for (const [code, keywords] of COUNTRY_KEYWORDS) {
-    if (keywords.some((kw) => new RegExp(`\\b${kw}\\b`).test(loc))) return code;
-  }
-  return 'us';
-}
 
 async function searchJobs(keywords, location) {
   const params = new URLSearchParams({
@@ -78,39 +65,6 @@ async function searchJobs(keywords, location) {
   }
 }
 
-function normalizeJob(raw) {
-  const min = raw.job_min_salary;
-  const max = raw.job_max_salary;
-  const period = raw.job_salary_period ?? 'YEAR';
-  const fmt = (n) => `$${Number(n).toLocaleString()}`;
-
-  let salary = 'Not specified';
-  if (min && max) {
-    salary =
-      period === 'YEAR'
-        ? `${fmt(min)} – ${fmt(max)}/yr`
-        : period === 'MONTH'
-          ? `${fmt(min)} – ${fmt(max)}/mo`
-          : `${fmt(min)} – ${fmt(max)}`;
-  }
-
-  const city = raw.job_city ?? '';
-  const state = raw.job_state ?? '';
-  const location = [city, state].filter(Boolean).join(', ') || 'Unknown';
-
-  return {
-    title: raw.job_title ?? '',
-    company: raw.employer_name ?? '',
-    location,
-    salary,
-    salaryMin: min,
-    description: raw.job_description ?? '',
-    applyUrl: raw.job_apply_link ?? raw.job_google_link ?? '#',
-    postedAt: raw.job_posted_at_datetime_utc ?? '',
-    jobType: raw.job_is_remote ? 'Remote' : 'On-site / Hybrid',
-  };
-}
-
 function loadSearchedJobs() {
   mkdirSync(join(BASE_DIR, 'data'), { recursive: true });
   if (existsSync(SEARCHED_JOBS_PATH)) {
@@ -121,43 +75,6 @@ function loadSearchedJobs() {
 
 function saveSearchedJobs(seen) {
   writeFileSync(SEARCHED_JOBS_PATH, JSON.stringify([...seen], null, 2));
-}
-
-// Compare by letters/digits so Ashby slugs ("reflectionai") match JSearch names ("Reflection AI, Inc.")
-function normalizeCompany(name) {
-  return name
-    .toLowerCase()
-    .replace(/\b(inc|llc|ltd|corp|corporation|co)\b/g, '')
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function jobId(job) {
-  const key = `${job.title}-${normalizeCompany(job.company)}-${job.location}`.toLowerCase();
-  return createHash('md5').update(key).digest('hex');
-}
-
-// ID format from before company names were normalized; keeps old seen jobs seen
-function legacyJobId(job) {
-  const key = `${job.title}-${job.company}-${job.location}`.toLowerCase();
-  return createHash('md5').update(key).digest('hex');
-}
-
-function isRelevant(job, profile) {
-  const title = job.title.toLowerCase();
-
-  if (
-    profile.job_preferences.title_include &&
-    !profile.job_preferences.title_include.some((kw) => title.includes(kw))
-  )
-    return false;
-
-  if (job.salaryMin && job.salaryMin < profile.job_preferences.min_salary)
-    return false;
-
-  if (profile.job_preferences.title_exclude.some((kw) => title.includes(kw)))
-    return false;
-
-  return true;
 }
 
 function findLinkedInUrl(companyName) {
@@ -193,26 +110,42 @@ async function run() {
     console.error('❌ RAPIDAPI_KEY not set — skipping JSearch (check your .env or GitHub secrets).');
   }
 
+  const failedSources = [];
+
   if (FETCH_ASHBY) {
     console.log(`\n🔍 Ashby job boards (last ${ASHBY_DAYS_AGO}d)`);
-    const ashbyMatches = await fetchAshbyJobs({ daysAgo: ASHBY_DAYS_AGO });
-    const ashbyJobs = ashbyMatches.map(normalizeAshbyJob);
-    console.log(`   Found ${ashbyJobs.length} jobs`);
-    allJobs.push(...ashbyJobs);
+    try {
+      const ashbyMatches = await fetchAshbyJobs({ daysAgo: ASHBY_DAYS_AGO });
+      const ashbyJobs = ashbyMatches.map(normalizeAshbyJob);
+      console.log(`   Found ${ashbyJobs.length} jobs`);
+      allJobs.push(...ashbyJobs);
+    } catch (err) {
+      console.error(`   Ashby search failed — ${err.message}`);
+      failedSources.push('Ashby');
+    }
   }
 
-  const uniqueMap = new Map();
-  for (const job of allJobs) {
-    const id = jobId(job);
-    if (!uniqueMap.has(id)) uniqueMap.set(id, job);
+  if (FETCH_GREENHOUSE) {
+    console.log(`\n🔍 Greenhouse job boards (last ${GREENHOUSE_DAYS_AGO}d)`);
+    try {
+      const ghMatches = await fetchGreenhouseJobs({ daysAgo: GREENHOUSE_DAYS_AGO });
+      const ghJobs = ghMatches.map(normalizeGreenhouseJob);
+      console.log(`   Found ${ghJobs.length} jobs`);
+      allJobs.push(...ghJobs);
+    } catch (err) {
+      console.error(`   Greenhouse search failed — ${err.message}`);
+      failedSources.push('Greenhouse');
+    }
   }
-  const uniqueJobs = [...uniqueMap.values()];
 
-  const jobs = uniqueJobs
-    .filter((j) => !searchedJobs.has(jobId(j)) && !searchedJobs.has(legacyJobId(j)))
-    .filter((j) => isRelevant(j, profile));
+  if (failedSources.length) {
+    console.warn(`\n⚠️ Sources failed: ${failedSources.join(', ')}`);
+    process.exitCode = 1;
+  }
+
+  const { uniqueCount, jobs } = selectNewJobs(allJobs, searchedJobs, profile);
   console.log(
-    `\n📊 ${allJobs.length} found → ${uniqueJobs.length} unique → ${jobs.length} new & relevant`,
+    `\n📊 ${allJobs.length} found → ${uniqueCount} unique → ${jobs.length} new & relevant`,
   );
 
   if (jobs.length === 0) {
@@ -226,21 +159,8 @@ async function run() {
   }
 
   // Score everything first so low scorers don't use up MAX_JOBS_PER_RUN slots
-  const qualified = [];
-  for (const job of jobs) {
-    const id = jobId(job);
-    const analysis = analyzeJob(
-      job.title,
-      job.description ?? '',
-      profile.search_config,
-    );
-    if (analysis.matchScore < MIN_MATCH_SCORE) {
-      searchedJobs.add(id);
-    } else {
-      qualified.push({ job, id, analysis });
-    }
-  }
-  qualified.sort((a, b) => b.analysis.matchScore - a.analysis.matchScore);
+  const { qualified, lowScoreIds } = scoreJobs(jobs, profile.search_config, MIN_MATCH_SCORE);
+  for (const id of lowScoreIds) searchedJobs.add(id);
   console.log(
     `🎯 ${qualified.length} of ${jobs.length} scored ≥ ${MIN_MATCH_SCORE}`,
   );

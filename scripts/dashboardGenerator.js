@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { escapeHtml, safeUrl, jsonForScript } from './htmlUtils.js';
+import { NOT_SPECIFIED } from './jobDefaults.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DASHBOARD_PATH = join(__dirname, '..', 'data', 'dashboard.html');
@@ -61,7 +62,7 @@ function renderJobCard(job, index) {
     <div class="card-grid">
       <div class="info-box">
         <div class="info-label">💰 Job Salary</div>
-        <div class="info-value">${escapeHtml(job.salary ?? 'Not specified')}</div>
+        <div class="info-value">${escapeHtml(job.salary ?? NOT_SPECIFIED)}</div>
       </div>
       ${job.salaryRange ? `<div class="info-box">
         <div class="info-label">📊 Avg Market Salary</div>

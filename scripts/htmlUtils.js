@@ -1,4 +1,5 @@
 // Escapes third-party job text before it goes into the email or dashboard HTML
+import { FALLBACK_URL } from './jobDefaults.js';
 
 const HTML_ESCAPES = {
   '&': '&amp;',
@@ -15,9 +16,9 @@ export function escapeHtml(value) {
 export function safeUrl(url) {
   try {
     const { protocol } = new URL(url);
-    return protocol === 'http:' || protocol === 'https:' ? escapeHtml(url) : '#';
+    return protocol === 'http:' || protocol === 'https:' ? escapeHtml(url) : FALLBACK_URL;
   } catch {
-    return '#';
+    return FALLBACK_URL;
   }
 }
 

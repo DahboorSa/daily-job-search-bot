@@ -23,3 +23,9 @@ export const FETCH_ASHBY = true;
 
 // How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
+
+// Set to false to skip Greenhouse company boards (see scripts/greenhouseClient.js)
+export const FETCH_GREENHOUSE = true;
+
+// How many days back to look for Greenhouse postings
+export const GREENHOUSE_DAYS_AGO = 7;
