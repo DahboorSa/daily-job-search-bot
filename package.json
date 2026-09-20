@@ -9,7 +9,8 @@
     "dashboard": "node scripts/generateDashboard.js",
     "setup": "node scripts/setupProfile.js",
     "mcp:ashby": "node scripts/ashbyMcpServer.js",
-    "mcp:greenhouse": "node scripts/greenhouseMcpServer.js"
+    "mcp:greenhouse": "node scripts/greenhouseMcpServer.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
