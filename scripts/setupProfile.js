@@ -1,7 +1,8 @@
 import 'dotenv/config';
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, copyFileSync } from 'fs';
 import mammoth from 'mammoth';
+import { z } from 'zod';
 
 const RESUME_DERIVED_FIELDS = [
   'personal',
@@ -11,11 +12,37 @@ const RESUME_DERIVED_FIELDS = [
   'certifications',
 ];
 
-// 1. Read file path from args
-// 2. Extract text from DOCX using mammoth
-// 3. Send text to Groq API
-// 4. Parse response as JSON
-// 5. Write to config/profile.json
+// Shape the bot expects; invalid model output never overwrites the profile
+const optionalText = z.union([z.string(), z.number()]).nullable().optional();
+// looseObject keeps extra keys
+const resumeFieldsSchema = z.object({
+  personal: z.looseObject({
+    name: z.string().min(1),
+    email: z.string(),
+    phone: z.string(),
+    location: z.string(),
+  }),
+  skills: z.record(z.string(), z.array(z.string())),
+  experience: z
+    .array(
+      z.looseObject({
+        title: z.string(),
+        company: z.string(),
+        location: z.string(),
+        dates: z.string(),
+        client: optionalText,
+        bullets: z.array(z.string()),
+      }),
+    )
+    .min(1),
+  education: z.looseObject({
+    degree: z.string(),
+    school: z.string(),
+    location: z.string(),
+    gpa: optionalText,
+  }),
+  certifications: z.array(z.string()),
+});
 
 async function callGroqWithRetry(body, retries = 3) {
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -43,9 +70,17 @@ async function callGroqWithRetry(body, retries = 3) {
 }
 
 async function generateProfile() {
-  console.log('📄 Generating Profile.json...');
+  console.log('📄 Parsing resume...');
   const CONFIG_PATH = 'config/profile.json';
   const filePath = process.argv[2];
+  if (!filePath) {
+    console.error('❌ Usage: npm run setup path/to/your/resume.docx');
+    return;
+  }
+  if (!process.env.GROQ_API_KEY) {
+    console.error('❌ GROQ_API_KEY is not set — add it to your .env file.');
+    return;
+  }
   try {
     if (filePath) {
       let resumeText;
@@ -55,7 +90,7 @@ async function generateProfile() {
           resumeText = result.value;
         })
         .catch((err) => {
-          console.error('❌ Error:', err);
+          console.error(`❌ Couldn't read the resume: ${err.message}`);
         });
 
       if (resumeText) {
@@ -77,24 +112,37 @@ async function generateProfile() {
           max_completion_tokens: 2048,
         });
         if (data.error) {
-          console.error('❌ groq API error:', data.error);
+          console.error(`❌ Groq API error: ${data.error.message ?? JSON.stringify(data.error)}`);
           return;
         }
-        const choice = data.choices[0];
-        const newFields = choice.message.content;
+        const choice = data.choices?.[0];
+        const newFields = choice?.message?.content;
         if (!newFields) {
           console.error(
-            `❌ Empty response from model (finish_reason: ${choice.finish_reason}). Try raising max_completion_tokens.`,
+            `❌ Empty model response (finish_reason: ${choice?.finish_reason}) — try raising max_completion_tokens`,
           );
           return;
         }
-        const merged = { ...profile, ...JSON.parse(newFields) };
+        const parsed = resumeFieldsSchema.safeParse(JSON.parse(newFields));
+        if (!parsed.success) {
+          const issues = parsed.error.issues
+            .slice(0, 3)
+            .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
+            .join('; ');
+          console.error(`❌ Unexpected model output, profile unchanged (${issues}). Run again.`);
+          return;
+        }
+        // Backup so a bad parse can be undone
+        copyFileSync(CONFIG_PATH, `${CONFIG_PATH}.bak`);
+        const merged = { ...profile, ...parsed.data };
         writeFileSync(CONFIG_PATH, JSON.stringify(merged, null, 2));
-        console.log('✅ Profile.json generated', newFields);
+        console.log(`✅ profile.json updated (backup: ${CONFIG_PATH}.bak)`);
+      } else if (resumeText === '') {
+        console.error('❌ No text could be extracted from the resume file.');
       }
     }
   } catch (err) {
-    console.error('❌ generate profile failed:', err);
+    console.error(`❌ Setup failed: ${err.message}`);
   }
 }
 
