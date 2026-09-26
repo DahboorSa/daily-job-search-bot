@@ -40,16 +40,18 @@ You wake up, open your email, and your job search is already done. ☕
 
 ## 💰 Cost
 
-| Service             | Plan                                                      | Cost         |
-| ------------------- | --------------------------------------------------------- | ------------ |
-| GitHub Actions      | Free (2,000 min/month)                                    | **$0**       |
-| RapidAPI JSearch    | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more | **$0**       |
-| RapidAPI Glassdoor  | Free tier — average market salary insights                | **$0**       |
-| Ashby Job Board API | Free, no key needed — direct company career pages         | **$0**       |
-| Greenhouse Job Board API | Free, no key needed — direct company career pages (MCP server) | **$0**  |
-| Gmail SMTP          | Free                                                      | **$0**       |
-| Groq (optional)     | Free tier — one-time resume → `profile.json` generation   | **$0**       |
-| **Total**           |                                                           | **$0/month** |
+| Service                  | Plan                                                           | Cost         |
+| ------------------------ | -------------------------------------------------------------- | ------------ |
+| GitHub Actions           | Free (2,000 min/month)                                         | **$0**       |
+| RapidAPI JSearch         | Free tier — aggregates Indeed, LinkedIn, Glassdoor & more      | **$0**       |
+| RapidAPI Glassdoor       | Free tier — average market salary insights                     | **$0**       |
+| Ashby Job Board API      | Free, no key needed — direct company career pages              | **$0**       |
+| Greenhouse Job Board API | Free, no key needed — direct company career pages (MCP server) | **$0**       |
+| Lever Postings API       | Free, no key needed — direct company career pages (MCP server) | **$0**       |
+| SmartRecruiters API      | Free, no key needed — direct company career pages (MCP server) | **$0**       |
+| Gmail SMTP               | Free                                                           | **$0**       |
+| Groq (optional)          | Free tier — one-time resume → `profile.json` generation        | **$0**       |
+| **Total**                |                                                                | **$0/month** |
 
 > ⚠️ Watch your monthly request limit on the free tier.
 > Want more searches? [Check JSearch pricing](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing) to upgrade.
@@ -239,7 +241,7 @@ export const MAX_JOBS_PER_RUN = 5;
 export const GENERATE_RESUMES = true;
 
 // How recent jobs to fetch: "today", "3days", "week" or "month"
-export const DATE_POSTED = "3days";
+export const DATE_POSTED = '3days';
 
 // Set to false to skip the daily email (the dashboard still updates)
 export const SEND_EMAIL = true;
@@ -267,6 +269,14 @@ export const GREENHOUSE_DAYS_AGO = 7;
 ### 🌱 Add or remove companies from the Greenhouse search
 
 `scripts/greenhouseCompanies.js` works the same way, with Greenhouse board tokens (the part of `job-boards.greenhouse.io/<token>`). To check a token before adding it, open `https://boards-api.greenhouse.io/v1/boards/<token>/jobs` in a browser — a working board returns JSON, a wrong token returns 404. The list is a starter set, not an official directory.
+
+### 🌿 Add or remove companies from the Lever search
+
+`scripts/leverCompanies.js` uses Lever site names (the part of `jobs.lever.co/<name>`). To check one before adding it, open `https://api.lever.co/v0/postings/<name>?mode=json` in a browser — a working board returns a JSON list, a wrong name returns an error. The list is a starter set, not an official directory.
+
+### 🧩 Add or remove companies from the SmartRecruiters search
+
+`scripts/smartRecruitersCompanies.js` uses SmartRecruiters company identifiers (the part of `jobs.smartrecruiters.com/<identifier>`, case-sensitive for some companies, e.g. `LinkedIn3`). To check one, open `https://api.smartrecruiters.com/v1/companies/<identifier>/postings` in a browser. A wrong identifier doesn't return an error, just `"totalFound": 0`, so check that the count isn't zero. The list is a starter set, not an official directory.
 
 ### 🎯 Personalize the search engine
 
@@ -308,10 +318,10 @@ Common schedule options (GitHub Actions cron always runs in **UTC**):
 
 ```yaml
 # Format: minute hour * * days (1-5 = Mon–Fri)
-- cron: "0 14 * * 1-5" # 9:00 AM EST / 10:00 AM EDT
-- cron: "30 13 * * 1-5" # 8:30 AM EST / 9:30 AM EDT
-- cron: "0 9 * * 1-5" # 9:00 AM UTC (adjust for your timezone)
-- cron: "0 14 * * *" # 9:00 AM EST every day including weekends
+- cron: '0 14 * * 1-5' # 9:00 AM EST / 10:00 AM EDT
+- cron: '30 13 * * 1-5' # 8:30 AM EST / 9:30 AM EDT
+- cron: '0 9 * * 1-5' # 9:00 AM UTC (adjust for your timezone)
+- cron: '0 14 * * *' # 9:00 AM EST every day including weekends
 ```
 
 ---
@@ -338,6 +348,12 @@ daily-job-search-bot/
 │   ├── greenhouseClient.js         # Fetches + filters US engineering jobs from Greenhouse-hosted boards
 │   ├── greenhouseCompanies.js      # ✏️ List of board tokens to search on Greenhouse
 │   ├── greenhouseMcpServer.js      # Standalone MCP server exposing Greenhouse search as an agent tool
+│   ├── leverClient.js              # Fetches + filters US engineering jobs from Lever-hosted boards
+│   ├── leverCompanies.js           # ✏️ List of Lever site names to search
+│   ├── leverMcpServer.js           # Standalone MCP server exposing Lever search as an agent tool
+│   ├── smartRecruitersClient.js    # Fetches + filters US engineering jobs from SmartRecruiters-hosted boards
+│   ├── smartRecruitersCompanies.js # ✏️ List of SmartRecruiters company identifiers to search
+│   ├── smartRecruitersMcpServer.js # Standalone MCP server exposing SmartRecruiters search as an agent tool
 │   ├── mcpJobsServer.js            # Shared MCP server logic (tool, CSV export) used by both servers above
 │   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
@@ -356,6 +372,8 @@ daily-job-search-bot/
 │   ├── jobs.json                   # Auto-created: all tracked jobs with status
 │   ├── ashby_jobs_record.csv       # Auto-created: latest Ashby MCP server run, if used
 │   ├── greenhouse_jobs_record.csv  # Auto-created: latest Greenhouse MCP server run, if used
+│   ├── lever_jobs_record.csv       # Auto-created: latest Lever MCP server run, if used
+│   ├── smartrecruiters_jobs_record.csv # Auto-created: latest SmartRecruiters MCP server run, if used
 │   └── dashboard.html              # Auto-created: open in browser to track jobs
 ├── output/
 │   └── YYYY-MM-DD/                 # Auto-created: daily resume files
@@ -391,11 +409,13 @@ npm run setup path/to/resume.docx   # (Re)generate config/profile.json from a re
 npm run dashboard                   # Rebuild data/dashboard.html from saved job data, without a full search
 npm run mcp:ashby                   # Start the Ashby search as a standalone MCP server (see below)
 npm run mcp:greenhouse              # Start the Greenhouse search as a standalone MCP server (see below)
+npm run mcp:lever                   # Start the Lever search as a standalone MCP server (see below)
+npm run mcp:smartrecruiters         # Start the SmartRecruiters search as a standalone MCP server (see below)
 ```
 
 ---
 
-## 🔌 Ashby & Greenhouse MCP Servers (optional)
+## 🔌 Ashby, Greenhouse, Lever & SmartRecruiters MCP Servers (optional)
 
 ### Ashby
 
@@ -438,18 +458,69 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_job
 
 > ℹ️ Greenhouse is also part of the daily run; set `FETCH_GREENHOUSE = false` in `config/settings.js` to skip it.
 
+### Lever
+
+`scripts/leverMcpServer.js` does the same for Lever-hosted boards:
+
+```json
+{
+  "mcpServers": {
+    "lever-jobs": {
+      "command": "node",
+      "args": ["scripts/leverMcpServer.js"]
+    }
+  }
+}
+```
+
+Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/lever_jobs_record.csv`. How it filters:
+
+- **US only** — uses the posting's `country` code (`US`).
+- **Engineering roles only** — the title must contain "software engineer" or "backend". Lever's department and team names are free text ("Hinge", "Dev"), so they aren't used to filter, only exported as columns.
+- **Publish date** — uses `createdAt`.
+- **Salary and links** — the CSV includes `salaryRange` (when the posting lists one), `jobUrl` (`hostedUrl`) and `applyUrl`.
+
+> ℹ️ Unlike Ashby and Greenhouse, Lever isn't part of the daily automated run — it's only available through the MCP server.
+
+### SmartRecruiters
+
+`scripts/smartRecruitersMcpServer.js` does the same for SmartRecruiters-hosted boards:
+
+```json
+{
+  "mcpServers": {
+    "smartrecruiters-jobs": {
+      "command": "node",
+      "args": ["scripts/smartRecruitersMcpServer.js"]
+    }
+  }
+}
+```
+
+Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiters_jobs_record.csv`. How it filters:
+
+- **US only** — asks the API for `country=us` and checks `location.country` again on each posting.
+- **Engineering roles only** — the title (`name`) must contain "software engineer" or "backend". The department is often empty and the function is broad ("Information Technology"), so neither is used to filter.
+- **Publish date** — uses `releasedDate`.
+- **Pagination** — fetches 100 postings per page, up to 20 pages per company.
+- **No salary column** — the postings list doesn't include pay. `jobUrl` is built as `jobs.smartrecruiters.com/<company>/<id>`.
+
+> ℹ️ Like Lever, SmartRecruiters is only available through the MCP server, not the daily run.
+
 ---
 
 ## 🛠 Troubleshooting
 
-| Problem                 | Fix                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| No email received       | Check Actions logs for ❌. Verify all 4 secrets are correct.                                           |
-| "0 jobs found"          | Change `DATE_POSTED` in `config/settings.js` — valid values: `"today"`, `"3days"`, `"week"`, `"month"` |
-| All scores too low      | Lower `MIN_MATCH_SCORE` in `config/settings.js`                                                        |
-| RapidAPI limit hit      | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing) |
-| Can't find App Password | Enable 2-Step Verification in Google Account first                                                     |
+| Problem                      | Fix                                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| No email received            | Check Actions logs for ❌. Verify all 4 secrets are correct.                                                     |
+| "0 jobs found"               | Change `DATE_POSTED` in `config/settings.js` — valid values: `"today"`, `"3days"`, `"week"`, `"month"`           |
+| All scores too low           | Lower `MIN_MATCH_SCORE` in `config/settings.js`                                                                  |
+| RapidAPI limit hit           | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing)           |
+| Can't find App Password      | Enable 2-Step Verification in Google Account first                                                               |
 | Greenhouse board returns 404 | The token in `scripts/greenhouseCompanies.js` is wrong — check `boards-api.greenhouse.io/v1/boards/<token>/jobs` |
+| Lever board returns an error | The name in `scripts/leverCompanies.js` is wrong — check `api.lever.co/v0/postings/<name>?mode=json`            |
+| SmartRecruiters finds 0 jobs | The identifier in `scripts/smartRecruitersCompanies.js` may be wrong (it's case-sensitive) — check `totalFound` |
 
 ---
 
@@ -469,7 +540,9 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_job
 - [x] Direct company career page search via Ashby-hosted boards (~130 top tech companies)
 - [x] Ashby search exposed as a standalone MCP server for agent use
 - [x] Greenhouse board search (US engineering roles) exposed as a standalone MCP server
-- [ ] Add Greenhouse to the daily automated run
+- [x] Add Greenhouse to the daily automated run
+- [x] Lever board search (US engineering roles) exposed as a standalone MCP server
+- [x] SmartRecruiters board search (US engineering roles) exposed as a standalone MCP server
 - [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
 - [ ] Rejection detection via email parsing

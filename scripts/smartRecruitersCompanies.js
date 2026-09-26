@@ -1,0 +1,15 @@
+export const smartRecruitersCompanies = [
+  'canva',
+  'servicenow',
+  'equinox',
+  'BoschGroup',
+  'LinkedIn3',
+  'WesternDigital',
+  'Experian',
+  'AbbVie',
+  'NBCUniversal3',
+  'Wise',
+  'Freshworks',
+  'Endava',
+  'NielsenIQ',
+];

@@ -10,6 +10,8 @@
     "setup": "node scripts/setupProfile.js",
     "mcp:ashby": "node scripts/ashbyMcpServer.js",
     "mcp:greenhouse": "node scripts/greenhouseMcpServer.js",
+    "mcp:lever": "node scripts/leverMcpServer.js",
+    "mcp:smartrecruiters": "node scripts/smartRecruitersMcpServer.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

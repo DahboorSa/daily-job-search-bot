@@ -1,4 +1,7 @@
 export const greenhouseCompanies = [
+  'canopyworks',
+  'calendly',
+  'energyhub',
   'thenewyorktimes',
   'embed',
   'cssmerge',

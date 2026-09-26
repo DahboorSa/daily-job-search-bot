@@ -14,6 +14,8 @@ data/jobs.json
 data/dashboard.html
 data/ashby_jobs_record.csv
 data/greenhouse_jobs_record.csv
+data/lever_jobs_record.csv
+data/smartrecruiters_jobs_record.csv
 
 # Editor
 .vscode/

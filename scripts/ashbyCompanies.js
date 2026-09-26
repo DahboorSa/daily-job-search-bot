@@ -1,4 +1,10 @@
 export const ashbyCompanies = [
+  'industrious',
+  'watershed',
+  'check-technologies',
+  'makai-labs',
+  'futurefitai',
+  'headway',
   'stepful',
   'Ashby',
   'openai',
