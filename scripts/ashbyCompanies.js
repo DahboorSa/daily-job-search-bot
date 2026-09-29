@@ -1,4 +1,8 @@
 export const ashbyCompanies = [
+  'spear-ai',
+  'cognition',
+  'clickhouse',
+  'auctor',
   'industrious',
   'watershed',
   'check-technologies',
