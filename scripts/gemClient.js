@@ -1,4 +1,4 @@
-import { gemCompanies } from './gemCompanies.js';
+import { gemCompanies } from './companies/gemCompanies.js';
 import { isUsLocation } from './jobUtils.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 

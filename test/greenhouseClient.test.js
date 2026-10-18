@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { htmlToText, normalizeGreenhouseJob, fetchGreenhouseJobs } from '../scripts/greenhouseClient.js';
-import { greenhouseCompanies } from '../scripts/greenhouseCompanies.js';
+import { greenhouseCompanies } from '../scripts/companies/greenhouseCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 test('htmlToText decodes entities, strips tags and keeps paragraph breaks', () => {

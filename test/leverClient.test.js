@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchLeverJobs, formatLeverSalary, normalizeLeverJob } from '../scripts/leverClient.js';
-import { leverCompanies } from '../scripts/leverCompanies.js';
+import { leverCompanies } from '../scripts/companies/leverCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(leverCompanies.length >= 3, 'tests need at least 3 companies in the list');

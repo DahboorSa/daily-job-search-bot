@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchAshbyJobs, normalizeAshbyJob } from '../scripts/ashbyClient.js';
-import { ashbyCompanies } from '../scripts/ashbyCompanies.js';
+import { ashbyCompanies } from '../scripts/companies/ashbyCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(ashbyCompanies.length >= 3, 'tests need at least 3 companies in the list');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchGreenhouseJobs } from '../scripts/greenhouseClient.js';
-import { greenhouseCompanies } from '../scripts/greenhouseCompanies.js';
+import { greenhouseCompanies } from '../scripts/companies/greenhouseCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(greenhouseCompanies.length >= 3, 'tests need at least 3 companies in the list');

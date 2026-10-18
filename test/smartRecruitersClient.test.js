@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchSmartRecruitersJobs, smartRecruitersJobUrl, normalizeSmartRecruitersJob } from '../scripts/smartRecruitersClient.js';
-import { smartRecruitersCompanies } from '../scripts/smartRecruitersCompanies.js';
+import { smartRecruitersCompanies } from '../scripts/companies/smartRecruitersCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(smartRecruitersCompanies.length >= 3, 'tests need at least 3 companies in the list');

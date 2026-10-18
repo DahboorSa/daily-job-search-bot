@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchGemJobs, normalizeGemJob } from '../scripts/gemClient.js';
-import { gemCompanies } from '../scripts/gemCompanies.js';
+import { gemCompanies } from '../scripts/companies/gemCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(gemCompanies.length >= 3, 'tests need at least 3 companies in the list');

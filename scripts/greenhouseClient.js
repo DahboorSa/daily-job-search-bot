@@ -1,4 +1,4 @@
-import { greenhouseCompanies } from './greenhouseCompanies.js';
+import { greenhouseCompanies } from './companies/greenhouseCompanies.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 import { isUsLocation } from './jobUtils.js';
 

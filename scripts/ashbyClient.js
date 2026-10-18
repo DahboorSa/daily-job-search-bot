@@ -1,4 +1,4 @@
-import { ashbyCompanies } from './ashbyCompanies.js';
+import { ashbyCompanies } from './companies/ashbyCompanies.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.ashbyhq.com/posting-api/job-board';

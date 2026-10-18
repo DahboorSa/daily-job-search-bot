@@ -2,19 +2,19 @@ import { McpServer, createMcpHandler } from '@modelcontextprotocol/server';
 import { createGetJobs, buildToolSchema } from '../scripts/jobsMcpTool.js';
 import { DAYS_AGO } from '../config/settings.js';
 
-import { ashbyCompanies } from '../scripts/ashbyCompanies.js';
+import { ashbyCompanies } from '../scripts/companies/ashbyCompanies.js';
 import { fetchAshbyJobs } from '../scripts/ashbyClient.js';
 
-import { leverCompanies } from '../scripts/leverCompanies.js';
+import { leverCompanies } from '../scripts/companies/leverCompanies.js';
 import { fetchLeverJobs, formatLeverSalary } from '../scripts/leverClient.js';
 
-import { greenhouseCompanies } from '../scripts/greenhouseCompanies.js';
+import { greenhouseCompanies } from '../scripts/companies/greenhouseCompanies.js';
 import { fetchGreenhouseJobs } from '../scripts/greenhouseClient.js';
 
-import { smartRecruitersCompanies } from '../scripts/smartRecruitersCompanies.js';
+import { smartRecruitersCompanies } from '../scripts/companies/smartRecruitersCompanies.js';
 import { fetchSmartRecruitersJobs, smartRecruitersJobUrl } from '../scripts/smartRecruitersClient.js';
 
-import { gemCompanies } from '../scripts/gemCompanies.js';
+import { gemCompanies } from '../scripts/companies/gemCompanies.js';
 import { fetchGemJobs } from '../scripts/gemClient.js';
 
 const sources = [

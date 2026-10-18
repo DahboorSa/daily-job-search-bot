@@ -1,4 +1,4 @@
-import { leverCompanies } from './leverCompanies.js';
+import { leverCompanies } from './companies/leverCompanies.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.lever.co/v0/postings';

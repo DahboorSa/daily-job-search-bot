@@ -1,4 +1,4 @@
-import { smartRecruitersCompanies } from './smartRecruitersCompanies.js';
+import { smartRecruitersCompanies } from './companies/smartRecruitersCompanies.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.smartrecruiters.com/v1/companies';
