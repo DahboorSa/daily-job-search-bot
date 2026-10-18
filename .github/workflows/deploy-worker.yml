@@ -9,6 +9,7 @@ on:
       - 'config/settings.js'
       - 'wrangler.toml'
       - 'package.json'
+      - '.github/workflows/deploy-worker.yml'
 
 jobs:
   deploy:
