@@ -349,21 +349,15 @@ daily-job-search-bot/
 │   ├── glassdoorClient.js          # Glassdoor rating & salary insights
 │   ├── ashbyClient.js              # Fetches + filters jobs from Ashby-hosted company boards
 │   ├── ashbyCompanies.js           # ✏️ List of company slugs to search on Ashby
-│   ├── ashbyMcpServer.js           # Standalone MCP server exposing Ashby search as an agent tool
-│   ├── greenhouseClient.js         # Fetches + filters US engineering jobs from Greenhouse-hosted boards
+│   ├── greenhouseClient.js         # Fetches + filters jobs from Greenhouse-hosted boards
 │   ├── greenhouseCompanies.js      # ✏️ List of board tokens to search on Greenhouse
-│   ├── greenhouseMcpServer.js      # Standalone MCP server exposing Greenhouse search as an agent tool
-│   ├── leverClient.js              # Fetches + filters US engineering jobs from Lever-hosted boards
+│   ├── leverClient.js              # Fetches + filters jobs from Lever-hosted boards
 │   ├── leverCompanies.js           # ✏️ List of Lever site names to search
-│   ├── leverMcpServer.js           # Standalone MCP server exposing Lever search as an agent tool
-│   ├── smartRecruitersClient.js    # Fetches + filters US engineering jobs from SmartRecruiters-hosted boards
+│   ├── smartRecruitersClient.js    # Fetches + filters jobs from SmartRecruiters-hosted boards
 │   ├── smartRecruitersCompanies.js # ✏️ List of SmartRecruiters company identifiers to search
-│   ├── smartRecruitersMcpServer.js # Standalone MCP server exposing SmartRecruiters search as an agent tool
-│   ├── gemClient.js                # Fetches + filters US engineering jobs from Gem-hosted boards
+│   ├── gemClient.js                # Fetches + filters jobs from Gem-hosted boards
 │   ├── gemCompanies.js             # ✏️ List of Gem job board slugs to search
-│   ├── gemMcpServer.js             # Standalone MCP server exposing Gem search as an agent tool
-│   ├── mcpJobsServer.js            # Shared MCP server logic (tool, table output, optional CSV) used by all five servers
-│   ├── jobsMcpTool.js              # createGetJobs shared between stdio servers and the Cloudflare Worker
+│   ├── jobsMcpTool.js              # Shared tool schema, location filter, and createGetJobs — used by the Cloudflare Worker
 │   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
 │   ├── jobsTracker.js              # Persists all jobs to data/jobs.json
@@ -420,140 +414,9 @@ Other useful commands:
 ```bash
 npm run setup path/to/resume.docx   # (Re)generate config/profile.json from a resume
 npm run dashboard                   # Rebuild data/dashboard.html from saved job data, without a full search
-npm run mcp:ashby                   # Start the Ashby search as a standalone MCP server (see below)
-npm run mcp:greenhouse              # Start the Greenhouse search as a standalone MCP server (see below)
-npm run mcp:lever                   # Start the Lever search as a standalone MCP server (see below)
-npm run mcp:smartrecruiters         # Start the SmartRecruiters search as a standalone MCP server (see below)
-npm run mcp:gem                     # Start the Gem search as a standalone MCP server (see below)
+npm run worker:dev                  # Run the MCP server locally via Wrangler
+npm run worker:deploy               # Deploy the MCP server to Cloudflare
 ```
-
----
-
-## 🔌 Ashby, Greenhouse, Lever, SmartRecruiters & Gem MCP Servers (optional)
-
-### Ashby
-
-`scripts/ashbyMcpServer.js` exposes the Ashby company-board search as a standalone [MCP](https://modelcontextprotocol.io) server, separate from the daily automated run. Point an MCP-compatible client (e.g. Claude Desktop or Claude Code) at it:
-
-```json
-{
-  "mcpServers": {
-    "ashby-jobs": {
-      "command": "node",
-      "args": ["scripts/ashbyMcpServer.js"]
-    }
-  }
-}
-```
-
-It provides a `get_jobs` tool that returns a **markdown table** of matching jobs — handy for asking an agent "find me recent backend roles at OpenAI or Notion" outside the daily email flow.
-
-| Parameter | Required | Description |
-| --- | --- | --- |
-| `title` | ✅ | Job title to search (case-insensitive substring, e.g. `"senior software engineer"`) |
-| `company` | ❌ | Filter by company name substring (e.g. `"stripe"`). Omit to search all companies. |
-| `daysAgo` | ❌ | How many days back to look (default 7) |
-| `limit` | ❌ | Max rows to return (default 20, max 100) |
-| `offset` | ❌ | Rows to skip — use with `limit` for pagination; `nextOffset` in the summary tells you when more pages exist |
-
-> 💡 **CSV export (local use only):** set `MCP_WRITE_CSV=true` in your environment to also write matches to `data/ashby_jobs_record.csv` and expose it as a readable resource.
-
-### Greenhouse
-
-`scripts/greenhouseMcpServer.js` is the same idea for Greenhouse-hosted boards:
-
-```json
-{
-  "mcpServers": {
-    "greenhouse-jobs": {
-      "command": "node",
-      "args": ["scripts/greenhouseMcpServer.js"]
-    }
-  }
-}
-```
-
-Its `get_jobs` tool accepts the same parameters as the Ashby server (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
-
-- **US only** — Greenhouse locations are free text like `Seattle, WA`, so it matches a US state code or an explicit `US` / `USA` / `United States`.
-- **Engineering roles only** — the department (when listed) must be engineering; the `title` parameter controls the title match.
-- **Publish date** — uses `first_published`, not `updated_at`, so edited old postings don't reappear as new.
-- **No salary column** — Greenhouse's board API doesn't expose pay ranges.
-
-> ℹ️ Greenhouse is also part of the daily run; set `FETCH_GREENHOUSE = false` in `config/settings.js` to skip it.
-
-### Lever
-
-`scripts/leverMcpServer.js` does the same for Lever-hosted boards:
-
-```json
-{
-  "mcpServers": {
-    "lever-jobs": {
-      "command": "node",
-      "args": ["scripts/leverMcpServer.js"]
-    }
-  }
-}
-```
-
-Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
-
-- **US only** — uses the posting's `country` code (`US`).
-- **Engineering roles only** — the `title` parameter controls the title match. Lever's department/team names are free text, so they aren't used to filter.
-- **Publish date** — uses `createdAt`.
-- **Salary** — the table includes `salaryRange` when the posting lists one.
-
-> ℹ️ Lever is also part of the daily run; set `FETCH_LEVER = false` in `config/settings.js` to skip it.
-
-### SmartRecruiters
-
-`scripts/smartRecruitersMcpServer.js` does the same for SmartRecruiters-hosted boards:
-
-```json
-{
-  "mcpServers": {
-    "smartrecruiters-jobs": {
-      "command": "node",
-      "args": ["scripts/smartRecruitersMcpServer.js"]
-    }
-  }
-}
-```
-
-Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
-
-- **US only** — asks the API for `country=us` and checks `location.country` again on each posting.
-- **Engineering roles only** — the `title` parameter controls the title match. The department is often empty, so it isn't used to filter.
-- **Publish date** — uses `releasedDate`.
-- **Pagination** — fetches 100 postings per page, up to 20 pages per company.
-- **No salary column** — the postings list doesn't include pay.
-
-> ℹ️ SmartRecruiters is also part of the daily run; set `FETCH_SMARTRECRUITERS = false` in `config/settings.js` to skip it.
-
-### Gem
-
-`scripts/gemMcpServer.js` does the same for Gem-hosted boards:
-
-```json
-{
-  "mcpServers": {
-    "gem-jobs": {
-      "command": "node",
-      "args": ["scripts/gemMcpServer.js"]
-    }
-  }
-}
-```
-
-Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
-
-- **US only** — locations are free text like `New York, United States`, so it uses the same matcher as Greenhouse (a US state code or `US` / `USA` / `United States`).
-- **Engineering roles only** — the `title` parameter controls the title match. Departments are often empty, so they aren't used to filter.
-- **Publish date** — uses `first_published_at`.
-- **No salary column** — Gem's job board API doesn't expose pay ranges.
-
-> ℹ️ Gem is also part of the daily run; set `FETCH_GEM = false` in `config/settings.js` to skip it.
 
 ---
 
@@ -571,7 +434,16 @@ Each source is a separate tool on the same server:
 | `get_smartrecruiters_jobs` | SmartRecruiters-hosted boards |
 | `get_gem_jobs` | Gem-hosted boards |
 
-All tools accept the same parameters as the standalone MCP servers (`title`, `company`, `daysAgo`, `limit`, `offset`).
+All tools accept the same parameters:
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `title` | ✅ | Job title to search (case-insensitive substring, e.g. `"senior software engineer"`) |
+| `location` | ✅ | City, country, or `"remote"` (e.g. `"San Francisco"`, `"United States"`, `"remote"`). Common country names are normalized automatically (`"United States"` → `US`, `"UK"` → `GB`, etc.) |
+| `company` | ❌ | Filter by company name substring. Omit to search all companies. |
+| `daysAgo` | ❌ | How many days back to look (default varies per board) |
+| `limit` | ❌ | Max rows to return (default 20, max 100) |
+| `offset` | ❌ | Rows to skip — use with `limit` for pagination; `nextOffset` in the summary tells you when more pages exist |
 
 ### Prerequisites
 
@@ -618,10 +490,16 @@ https://job-boards-mcp.<your-account>.workers.dev
 {
   "mcpServers": {
     "job-boards": {
-      "url": "https://job-boards-mcp.<your-account>.workers.dev"
+      "url": "https://job-boards-mcp.<your-account>.workers.dev/sse"
     }
   }
 }
+```
+
+**Claude Code (CLI)**:
+
+```bash
+claude mcp add job-boards --transport sse https://job-boards-mcp.<your-account>.workers.dev/sse
 ```
 
 **Claude.ai** — go to **Settings → Integrations → Add** and paste the URL.
@@ -667,7 +545,7 @@ https://job-boards-mcp.<your-account>.workers.dev
 - [x] SmartRecruiters board search exposed as a standalone MCP server and added to the daily run
 - [x] Gem board search exposed as a standalone MCP server and added to the daily run
 - [x] MCP `get_jobs` tool: dynamic title filter, company filter, limit/offset pagination, markdown table output
-- [ ] MCP `get_jobs` country filter param — all five boards currently hard-filter to US only; adding a `country` param needs per-board value mapping (Lever uses `country` code `US`, Greenhouse/Gem match free-text location strings, SmartRecruiters takes a `country=us` query param, Ashby uses `addressCountry`)
+- [x] MCP `location` filter param — city, country name, or `"remote"`; country names normalized to ISO codes; remote matched across all board-specific flags (`isRemote`, `remote`, `workplaceType`, `locationType`, location string)
 - [ ] Server-side result caching for MCP pagination (avoid re-fetching all companies per page)
 - [ ] Workable board search (public API, no key — mid-size tech companies)
 - [ ] Breezy HR board search (public API, no key — growth-stage companies)
