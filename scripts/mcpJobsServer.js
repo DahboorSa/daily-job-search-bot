@@ -117,7 +117,7 @@ async function runJobsMcpServer(source) {
   console.error(`${name} MCP Server running on stdio`);
 }
 
-// Stdio MCP server whose `get_jobs` tool exports matches to CSV (Ashby, Greenhouse, Lever + SmartRecruiters)
+// Stdio MCP server whose `get_jobs` tool exports matches to CSV (Ashby, Greenhouse, Lever, SmartRecruiters + Gem)
 export function startJobsMcpServer(source) {
   runJobsMcpServer(source).catch((error) => {
     console.error('Fatal error in main():', error);

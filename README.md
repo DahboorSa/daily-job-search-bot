@@ -49,6 +49,7 @@ You wake up, open your email, and your job search is already done. ☕
 | Greenhouse Job Board API | Free, no key needed — direct company career pages (MCP server) | **$0**       |
 | Lever Postings API       | Free, no key needed — direct company career pages (MCP server) | **$0**       |
 | SmartRecruiters API      | Free, no key needed — direct company career pages (MCP server) | **$0**       |
+| Gem Job Board API        | Free, no key needed — direct company career pages (MCP server) | **$0**       |
 | Gmail SMTP               | Free                                                           | **$0**       |
 | Groq (optional)          | Free tier — one-time resume → `profile.json` generation        | **$0**       |
 | **Total**                |                                                                | **$0/month** |
@@ -278,6 +279,10 @@ export const GREENHOUSE_DAYS_AGO = 7;
 
 `scripts/smartRecruitersCompanies.js` uses SmartRecruiters company identifiers (the part of `jobs.smartrecruiters.com/<identifier>`, case-sensitive for some companies, e.g. `LinkedIn3`). To check one, open `https://api.smartrecruiters.com/v1/companies/<identifier>/postings` in a browser. A wrong identifier doesn't return an error, just `"totalFound": 0`, so check that the count isn't zero. The list is a starter set, not an official directory.
 
+### 💎 Add or remove companies from the Gem search
+
+`scripts/gemCompanies.js` uses Gem job board slugs (the part of `jobs.gem.com/<slug>`). To check one before adding it, open `https://api.gem.com/job_board/v0/<slug>/job_posts/` in a browser — a working board returns a JSON list, a wrong slug returns 404. The list is a starter set, not an official directory.
+
 ### 🎯 Personalize the search engine
 
 All customizable data lives in **one file** — `config/profile.json`, under the `search_config` key.
@@ -354,6 +359,9 @@ daily-job-search-bot/
 │   ├── smartRecruitersClient.js    # Fetches + filters US engineering jobs from SmartRecruiters-hosted boards
 │   ├── smartRecruitersCompanies.js # ✏️ List of SmartRecruiters company identifiers to search
 │   ├── smartRecruitersMcpServer.js # Standalone MCP server exposing SmartRecruiters search as an agent tool
+│   ├── gemClient.js                # Fetches + filters US engineering jobs from Gem-hosted boards
+│   ├── gemCompanies.js             # ✏️ List of Gem job board slugs to search
+│   ├── gemMcpServer.js             # Standalone MCP server exposing Gem search as an agent tool
 │   ├── mcpJobsServer.js            # Shared MCP server logic (tool, CSV export) used by both servers above
 │   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
@@ -374,6 +382,7 @@ daily-job-search-bot/
 │   ├── greenhouse_jobs_record.csv  # Auto-created: latest Greenhouse MCP server run, if used
 │   ├── lever_jobs_record.csv       # Auto-created: latest Lever MCP server run, if used
 │   ├── smartrecruiters_jobs_record.csv # Auto-created: latest SmartRecruiters MCP server run, if used
+│   ├── gem_jobs_record.csv         # Auto-created: latest Gem MCP server run, if used
 │   └── dashboard.html              # Auto-created: open in browser to track jobs
 ├── output/
 │   └── YYYY-MM-DD/                 # Auto-created: daily resume files
@@ -411,11 +420,12 @@ npm run mcp:ashby                   # Start the Ashby search as a standalone MCP
 npm run mcp:greenhouse              # Start the Greenhouse search as a standalone MCP server (see below)
 npm run mcp:lever                   # Start the Lever search as a standalone MCP server (see below)
 npm run mcp:smartrecruiters         # Start the SmartRecruiters search as a standalone MCP server (see below)
+npm run mcp:gem                     # Start the Gem search as a standalone MCP server (see below)
 ```
 
 ---
 
-## 🔌 Ashby, Greenhouse, Lever & SmartRecruiters MCP Servers (optional)
+## 🔌 Ashby, Greenhouse, Lever, SmartRecruiters & Gem MCP Servers (optional)
 
 ### Ashby
 
@@ -507,6 +517,30 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiter
 
 > ℹ️ Like Lever, SmartRecruiters is only available through the MCP server, not the daily run.
 
+### Gem
+
+`scripts/gemMcpServer.js` does the same for Gem-hosted boards:
+
+```json
+{
+  "mcpServers": {
+    "gem-jobs": {
+      "command": "node",
+      "args": ["scripts/gemMcpServer.js"]
+    }
+  }
+}
+```
+
+Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/gem_jobs_record.csv`. How it filters:
+
+- **US only** — locations are free text like `New York, United States`, so it uses the same matcher as Greenhouse (a US state code or `US` / `USA` / `United States`).
+- **Engineering roles only** — the title must contain "software engineer" or "backend". Departments are often empty, so they're only exported as a column.
+- **Publish date** — uses `first_published_at`.
+- **No salary column** — Gem's job board API doesn't expose pay ranges. `jobUrl` is the posting's `absolute_url`.
+
+> ℹ️ Gem is only available through the MCP server, not the daily run.
+
 ---
 
 ## 🛠 Troubleshooting
@@ -521,6 +555,7 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiter
 | Greenhouse board returns 404 | The token in `scripts/greenhouseCompanies.js` is wrong — check `boards-api.greenhouse.io/v1/boards/<token>/jobs` |
 | Lever board returns an error | The name in `scripts/leverCompanies.js` is wrong — check `api.lever.co/v0/postings/<name>?mode=json`            |
 | SmartRecruiters finds 0 jobs | The identifier in `scripts/smartRecruitersCompanies.js` may be wrong (it's case-sensitive) — check `totalFound` |
+| Gem board returns 404        | The slug in `scripts/gemCompanies.js` is wrong — check `api.gem.com/job_board/v0/<slug>/job_posts/`             |
 
 ---
 
@@ -543,6 +578,7 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiter
 - [x] Add Greenhouse to the daily automated run
 - [x] Lever board search (US engineering roles) exposed as a standalone MCP server
 - [x] SmartRecruiters board search (US engineering roles) exposed as a standalone MCP server
+- [x] Gem board search (US engineering roles) exposed as a standalone MCP server
 - [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
 - [ ] Rejection detection via email parsing

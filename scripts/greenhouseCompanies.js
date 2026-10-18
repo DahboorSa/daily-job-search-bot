@@ -1,9 +1,9 @@
 export const greenhouseCompanies = [
+  'novacredit',
   'canopyworks',
   'calendly',
   'energyhub',
   'thenewyorktimes',
-  'embed',
   'cssmerge',
   'stripe',
   'airbnb',
@@ -31,7 +31,6 @@ export const greenhouseCompanies = [
   'brex',
   'vercel',
   'gusto',
-  'webflow',
   'carta',
   'affirm',
   'chime',
@@ -39,7 +38,6 @@ export const greenhouseCompanies = [
   'mercury',
   'toast',
   'airtable',
-  'amplitude',
   'fivetran',
   'lattice',
 ];

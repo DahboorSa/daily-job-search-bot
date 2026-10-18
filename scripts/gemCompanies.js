@@ -1,0 +1,15 @@
+export const gemCompanies = [
+  'bikky',
+  'gem',
+  'retool',
+  'testbox-buffer2',
+  'macro-corporation',
+  'level',
+  'rely',
+  'microsoft-demo-gem-com',
+  'gem-smb',
+  'supio',
+  'felix',
+  'narmi',
+  'auger',
+];

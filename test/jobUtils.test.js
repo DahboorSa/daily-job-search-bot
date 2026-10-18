@@ -9,7 +9,21 @@ import {
   isRelevant,
   selectNewJobs,
   scoreJobs,
+  isUsLocation,
 } from '../scripts/jobUtils.js';
+
+test('isUsLocation matches state codes, explicit markers and D.C., and rejects everything else', () => {
+  assert.equal(isUsLocation('Seattle, WA'), true);
+  assert.equal(isUsLocation('New York, United States'), true);
+  assert.equal(isUsLocation('Remote (US)'), true);
+  assert.equal(isUsLocation('Remote, USA'), true);
+  assert.equal(isUsLocation('Washington, D.C.'), true);
+
+  assert.equal(isUsLocation('London, UK'), false);
+  assert.equal(isUsLocation('Toronto, ON'), false); // "ON" isn't a US state code
+  assert.equal(isUsLocation(''), false);
+  assert.equal(isUsLocation(undefined), false);
+});
 
 test('getCountryCode matches whole words only', () => {
   assert.equal(getCountryCode('Amman, Jordan'), 'jo');

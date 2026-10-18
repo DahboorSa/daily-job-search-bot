@@ -1,4 +1,5 @@
 export const leverCompanies = [
+  'curai',
   'matchgroup',
   'palantir',
   'spotify',
@@ -17,4 +18,5 @@ export const leverCompanies = [
   'crypto',
   'paytm',
   'veeva',
+  'nitra',
 ];

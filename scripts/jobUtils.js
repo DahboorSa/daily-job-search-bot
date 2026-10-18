@@ -2,6 +2,27 @@ import { createHash } from 'crypto';
 import { analyzeJob } from './searchEngine.js';
 import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
+const US_STATE_CODES = new Set([
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+  'DC',
+]);
+
+// Locations are free text ("Seattle, WA"), so match a US state code or a US marker
+export function isUsLocation(locationName) {
+  if (!locationName) return false;
+  if (/united states/i.test(locationName) || /\b(US|USA)\b/.test(locationName)) {
+    return true;
+  }
+  if (/\bD\.C\./.test(locationName)) return true;
+
+  const codes = locationName.match(/\b[A-Z]{2}\b/g) ?? [];
+  return codes.some((code) => US_STATE_CODES.has(code));
+}
+
 // Whole words only: "uk" matched Milwaukee, "india" matched Indianapolis
 const COUNTRY_KEYWORDS = [
   ['jo', ['jordan', 'amman']],

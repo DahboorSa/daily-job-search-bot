@@ -12,6 +12,7 @@
     "mcp:greenhouse": "node scripts/greenhouseMcpServer.js",
     "mcp:lever": "node scripts/leverMcpServer.js",
     "mcp:smartrecruiters": "node scripts/smartRecruitersMcpServer.js",
+    "mcp:gem": "node scripts/gemMcpServer.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

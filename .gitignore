@@ -16,6 +16,7 @@ data/ashby_jobs_record.csv
 data/greenhouse_jobs_record.csv
 data/lever_jobs_record.csv
 data/smartrecruiters_jobs_record.csv
+data/gem_jobs_record.csv
 
 # Editor
 .vscode/
