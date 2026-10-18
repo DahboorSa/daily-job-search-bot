@@ -23,3 +23,4 @@ data/gem_jobs_record.csv
 
 # macOS
 .DS_Store
+.wrangler/

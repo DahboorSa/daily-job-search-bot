@@ -363,12 +363,16 @@ daily-job-search-bot/
 │   ├── gemCompanies.js             # ✏️ List of Gem job board slugs to search
 │   ├── gemMcpServer.js             # Standalone MCP server exposing Gem search as an agent tool
 │   ├── mcpJobsServer.js            # Shared MCP server logic (tool, table output, optional CSV) used by all five servers
+│   ├── jobsMcpTool.js              # createGetJobs shared between stdio servers and the Cloudflare Worker
 │   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
 │   ├── jobsTracker.js              # Persists all jobs to data/jobs.json
 │   ├── dashboardGenerator.js       # Generates static HTML dashboard
 │   ├── generateDashboard.js        # CLI entry point to rebuild the dashboard from saved data
 │   └── dashboardClient.js          # Dashboard browser-side JS
+├── worker/
+│   └── index.js                    # Cloudflare Worker — all 5 sources as one remote MCP server
+├── wrangler.toml                   # Cloudflare Worker config (name, entry point, nodejs_compat)
 ├── templates/
 │   └── dashboard.html              # Dashboard HTML/CSS template
 ├── test/                           # node:test suites (run with `npm test`)
@@ -550,6 +554,79 @@ Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, 
 - **No salary column** — Gem's job board API doesn't expose pay ranges.
 
 > ℹ️ Gem is also part of the daily run; set `FETCH_GEM = false` in `config/settings.js` to skip it.
+
+---
+
+## ☁️ Remote MCP Server (Cloudflare Worker)
+
+All five job-board searches are also bundled into a single **Cloudflare Worker** — a remote MCP server you can point any MCP-compatible client at without running anything locally.
+
+Each source is a separate tool on the same server:
+
+| Tool | Source |
+| --- | --- |
+| `get_ashby_jobs` | Ashby-hosted boards |
+| `get_lever_jobs` | Lever-hosted boards |
+| `get_greenhouse_jobs` | Greenhouse-hosted boards |
+| `get_smartrecruiters_jobs` | SmartRecruiters-hosted boards |
+| `get_gem_jobs` | Gem-hosted boards |
+
+All tools accept the same parameters as the standalone MCP servers (`title`, `company`, `daysAgo`, `limit`, `offset`).
+
+### Prerequisites
+
+```bash
+npm install -g wrangler
+wrangler login   # opens browser — authorize with your Cloudflare account
+```
+
+### Test locally
+
+```bash
+npm run worker:dev
+```
+
+This starts the Worker at `http://localhost:8787`. To test it with Claude Desktop, temporarily point it at localhost:
+
+```json
+{
+  "mcpServers": {
+    "job-boards": {
+      "url": "http://localhost:8787"
+    }
+  }
+}
+```
+
+### Deploy to Cloudflare
+
+```bash
+npm run worker:deploy
+```
+
+Cloudflare prints your live URL:
+
+```
+https://job-boards-mcp.<your-account>.workers.dev
+```
+
+### Connect Claude to the deployed Worker
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "job-boards": {
+      "url": "https://job-boards-mcp.<your-account>.workers.dev"
+    }
+  }
+}
+```
+
+**Claude.ai** — go to **Settings → Integrations → Add** and paste the URL.
+
+> 💡 The Worker is stateless and runs at Cloudflare's edge — no cold starts, free tier supports 100,000 requests/day which is far more than you'll ever use.
 
 ---
 

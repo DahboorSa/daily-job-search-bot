@@ -13,6 +13,8 @@
     "mcp:lever": "node scripts/leverMcpServer.js",
     "mcp:smartrecruiters": "node scripts/smartRecruitersMcpServer.js",
     "mcp:gem": "node scripts/gemMcpServer.js",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

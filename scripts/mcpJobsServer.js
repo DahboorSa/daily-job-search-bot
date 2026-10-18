@@ -1,9 +1,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
-import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createGetJobs } from './jobsMcpTool.js';
+
+export { createGetJobs } from './jobsMcpTool.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'data');
@@ -16,69 +18,8 @@ function csvEscape(value) {
   return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
-function buildMarkdownTable(columns, rows) {
-  const header = `| ${columns.join(' | ')} |`;
-  const divider = `| ${columns.map(() => '---').join(' | ')} |`;
-  const body = rows.map((row) => `| ${columns.map((col) => csvEscape(row[col])).join(' | ')} |`).join('\n');
-  return [header, divider, body].join('\n');
-}
-
 // afterFetch({ rows, filePath, toCsvRow, csvHeader, recordUri, recordFile }) is called after pagination
 // and its return value is merged into { summaryExtras, contentExtras } to add CSV-specific fields.
-export function createGetJobs(source, { afterFetch } = {}) {
-  const { name, csvColumns, toCsvColumns, fetchJobs, defaultDaysAgo, companiesCount } = source;
-
-  return async function getJobs({ daysAgo, title, company, limit = 20, offset = 0 }) {
-    const effectiveDaysAgo = daysAgo && daysAgo > 0 ? daysAgo : defaultDaysAgo;
-    const runDate = new Date();
-
-    try {
-      const matches = await fetchJobs({ daysAgo: effectiveDaysAgo, titleKeyword: title });
-
-      const filtered = company
-        ? matches.filter((m) => {
-            const companyName = (toCsvColumns(m).companyName ?? m.companyName ?? '').toLowerCase();
-            return companyName.includes(company.toLowerCase());
-          })
-        : matches;
-
-      const page = filtered.slice(offset, offset + limit);
-      const rows = page.map(toCsvColumns);
-      const companiesWithMatches = new Set(filtered.map((m) => m.companyName)).size;
-
-      const { summaryExtras = {}, contentExtras = [] } = afterFetch?.({ rows }) ?? {};
-
-      const summary = {
-        title,
-        company: company ?? 'all',
-        showing: filtered.length === 0 ? '0 of 0' : `${offset + 1}–${offset + page.length} of ${filtered.length}`,
-        companiesSearched: companiesCount,
-        companiesWithMatches,
-        daysAgo: effectiveDaysAgo,
-        runAt: runDate.toISOString(),
-        ...(filtered.length > offset + limit && { nextOffset: offset + limit }),
-        ...summaryExtras,
-      };
-
-      const table = rows.length
-        ? buildMarkdownTable(csvColumns, rows)
-        : '_No matching jobs found._';
-
-      const content = [
-        { type: 'text', text: JSON.stringify(summary, null, 2) },
-        { type: 'text', text: table },
-        ...contentExtras,
-      ];
-
-      return { content };
-    } catch (error) {
-      console.error('error in getJobs', error);
-      return {
-        content: [{ type: 'text', text: `Error fetching jobs from ${name}` }],
-      };
-    }
-  };
-}
 
 async function runJobsMcpServer(source) {
   const { name, recordFile, recordUri, csvColumns, defaultDaysAgo } = source;
