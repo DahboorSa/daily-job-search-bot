@@ -21,6 +21,7 @@ import {
   GENERATE_RESUMES,
   SEND_EMAIL,
   FETCH_GLASSDOOR,
+  FETCH_JSEARCH,
   FETCH_ASHBY,
   ASHBY_DAYS_AGO,
   FETCH_GREENHOUSE,
@@ -99,7 +100,7 @@ async function run() {
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const allJobs = [];
-  if (RAPIDAPI_KEY) {
+  if (FETCH_JSEARCH && RAPIDAPI_KEY) {
     for (const [keywords, location] of SEARCHES) {
       console.log(`\n🔍 "${keywords}" in "${location}"`);
       const jobs = await searchJobs(keywords, location);
@@ -107,7 +108,9 @@ async function run() {
       await sleep(1000);
     }
   } else {
-    console.error('❌ RAPIDAPI_KEY not set — skipping JSearch (check your .env or GitHub secrets).');
+    console.log(
+      `📴 JSearch skipped — FETCH_JSEARCH=${FETCH_JSEARCH}, RAPIDAPI_KEY ${RAPIDAPI_KEY ? 'set' : 'not set'} (check your config and secrets).`,
+    );
   }
 
   const failedSources = [];

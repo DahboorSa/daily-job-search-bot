@@ -232,36 +232,32 @@ Supported countries:
 Edit `config/settings.js`:
 
 ```js
-// Minimum match score (0–100): lower = more results, higher = stronger matches
 export const MIN_MATCH_SCORE = 50;
-
-// Max jobs processed per day, highest scores first (keep low while GENERATE_RESUMES = true)
 export const MAX_JOBS_PER_RUN = 5;
-
-// Set to false to skip .docx resumes (the email report still sends, without attachments)
 export const GENERATE_RESUMES = true;
-
-// How recent jobs to fetch: "today", "3days", "week" or "month"
 export const DATE_POSTED = '3days';
-
-// Set to false to skip the daily email (the dashboard still updates)
+export const FETCH_JSEARCH = true;
 export const SEND_EMAIL = true;
-
-// Set to false to skip Glassdoor calls (saves your monthly API limit)
 export const FETCH_GLASSDOOR = true;
-
-// Set to false to skip Ashby company boards (see scripts/ashbyClient.js)
 export const FETCH_ASHBY = true;
-
-// How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
-
-// Set to false to skip Greenhouse company boards (see scripts/greenhouseClient.js)
 export const FETCH_GREENHOUSE = true;
-
-// How many days back to look for Greenhouse postings
 export const GREENHOUSE_DAYS_AGO = 7;
 ```
+
+| Setting | What it does |
+| --- | --- |
+| `MIN_MATCH_SCORE` | Minimum match score (0–100) to include a job. Lower = more results, higher = stronger matches. |
+| `MAX_JOBS_PER_RUN` | Max jobs processed per day, highest scores first. Keep this low while `GENERATE_RESUMES = true`. |
+| `GENERATE_RESUMES` | Set to `false` to skip `.docx` resumes — the email report still sends, without attachments. |
+| `DATE_POSTED` | How recent jobs to fetch via JSearch: `"today"`, `"3days"`, `"week"` or `"month"`. |
+| `FETCH_JSEARCH` | Set to `false` to skip JSearch (Indeed/LinkedIn/Glassdoor aggregator) — saves your monthly RapidAPI limit, without removing the `RAPIDAPI_KEY` secret. |
+| `SEND_EMAIL` | Set to `false` to skip the daily email — the dashboard still updates. |
+| `FETCH_GLASSDOOR` | Set to `false` to skip Glassdoor salary lookups — saves your monthly RapidAPI limit. |
+| `FETCH_ASHBY` | Set to `false` to skip Ashby company boards (see `scripts/ashbyClient.js`). |
+| `ASHBY_DAYS_AGO` | How many days back to look for Ashby postings. |
+| `FETCH_GREENHOUSE` | Set to `false` to skip Greenhouse company boards (see `scripts/greenhouseClient.js`). |
+| `GREENHOUSE_DAYS_AGO` | How many days back to look for Greenhouse postings. |
 
 ### 🏢 Add or remove companies from the Ashby search
 

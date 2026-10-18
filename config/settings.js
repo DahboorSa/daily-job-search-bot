@@ -1,30 +1,33 @@
-// Bot settings — tune these to change how the bot behaves each run
+// Bot settings — tune these to change how the bot behaves each run. See README → "Tune job results" for details.
 
-// Minimum match score (0–100): lower = more results, higher = stronger matches
+// Minimum match score (0–100)
 export const MIN_MATCH_SCORE = 50;
 
-// Max jobs processed per day, highest scores first (keep low while GENERATE_RESUMES = true)
+// Max jobs processed per day
 export const MAX_JOBS_PER_RUN = 5;
 
-// Set to false to skip .docx resumes (the email report still sends, without attachments)
+// Generate a tailored .docx resume per match
 export const GENERATE_RESUMES = true;
 
 // How recent jobs to fetch: "today", "3days", "week" or "month"
 export const DATE_POSTED = '3days';
 
-// Set to false to skip the daily email (the dashboard still updates)
+// Search JSearch (Indeed/LinkedIn/Glassdoor aggregator)
+export const FETCH_JSEARCH = true;
+
+// Send the daily email report
 export const SEND_EMAIL = true;
 
-// Set to false to skip Glassdoor calls (saves your monthly API limit)
+// Look up Glassdoor salary data
 export const FETCH_GLASSDOOR = true;
 
-// Set to false to skip Ashby company boards (see scripts/ashbyClient.js)
+// Search Ashby company boards
 export const FETCH_ASHBY = true;
 
 // How many days back to look for Ashby postings
 export const ASHBY_DAYS_AGO = 7;
 
-// Set to false to skip Greenhouse company boards (see scripts/greenhouseClient.js)
+// Search Greenhouse company boards
 export const FETCH_GREENHOUSE = true;
 
 // How many days back to look for Greenhouse postings
