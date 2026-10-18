@@ -1,0 +1,327 @@
+<title>Job Boards MCP</title>
+<style>
+:root {
+  --bg:       #ffffff;
+  --bg-sub:   #f6f8fa;
+  --border:   #d0d7de;
+  --fg:       #1f2328;
+  --fg-muted: #636c76;
+  --accent:   #0969da;
+  --code-bg:  #f0f2f5;
+  --req:      #cf4a36;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #0d1117;
+    --bg-sub:   #161b22;
+    --border:   #30363d;
+    --fg:       #e6edf3;
+    --fg-muted: #8b949e;
+    --accent:   #58a6ff;
+    --code-bg:  #1c2128;
+    --req:      #f47067;
+    color-scheme: dark;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.65 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 48px 24px;
+}
+
+.page { max-width: 740px; margin: 0 auto; }
+
+/* Header */
+.header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.header h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.02em; }
+.header p { margin: 0; color: var(--fg-muted); font-size: 14px; }
+.meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+.meta-item { font-size: 13px; color: var(--fg-muted); }
+.meta-item strong { color: var(--fg); }
+
+/* Nav */
+.toc { margin-bottom: 40px; padding: 16px 20px; background: var(--bg-sub); border: 1px solid var(--border); border-radius: 6px; }
+.toc p { margin: 0 0 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.toc ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.toc a { font-size: 13px; color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* Sections */
+h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin: 24px 0 8px; }
+p { margin: 0 0 12px; color: var(--fg-muted); max-width: 65ch; }
+p strong, p a { color: var(--fg); }
+a { color: var(--accent); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
+th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); padding: 6px 12px; background: var(--bg-sub); border-bottom: 1px solid var(--border); }
+td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--fg-muted); }
+tr:last-child td { border-bottom: none; }
+.p-name { font-family: ui-monospace, monospace; font-size: 12px; color: var(--fg); white-space: nowrap; }
+.p-type { font-family: ui-monospace, monospace; font-size: 11px; color: var(--accent); }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+.req  { color: var(--req); border: 1px solid #f0a89e; background: #fdf2f1; }
+.opt  { color: var(--fg-muted); border: 1px solid var(--border); }
+@media (prefers-color-scheme: dark) { .req { border-color: #7a2e28; background: #2d1614; } }
+
+/* Code blocks */
+.code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+.code-top { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.code-lang { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.copy { font-size: 11px; color: var(--fg-muted); background: none; border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+.copy:hover { color: var(--fg); }
+pre { margin: 0; padding: 14px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.6; color: var(--fg); overflow-x: auto; }
+
+/* Tool entries */
+.tool { margin-bottom: 32px; padding: 20px; border: 1px solid var(--border); border-radius: 6px; }
+.tool-name { font-family: ui-monospace, monospace; font-size: 16px; font-weight: 600; margin: 0 0 4px; color: var(--fg); }
+.tool-desc { font-size: 13px; color: var(--fg-muted); margin: 0 0 16px; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { font-family: ui-monospace, monospace; font-size: 11px; background: var(--bg-sub); border: 1px solid var(--border); color: var(--fg-muted); padding: 2px 7px; border-radius: 4px; }
+
+hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+</style>
+
+<div class="page">
+
+  <div class="header">
+    <h1>Job Boards MCP</h1>
+    <p>Remote MCP server — search live job postings across five ATS platforms from any MCP-compatible AI client.</p>
+    <div class="meta">
+      <div class="meta-item"><strong>Endpoint</strong> job-boards-mcp.saba-dahboor.workers.dev</div>
+      <div class="meta-item"><strong>Transport</strong> HTTP / SSE</div>
+      <div class="meta-item"><strong>Auth</strong> None</div>
+      <div class="meta-item"><strong>Tools</strong> 5</div>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <p>On this page</p>
+    <ul>
+      <li><a href="#connect">Connecting</a></li>
+      <li><a href="#schema">Input Schema</a></li>
+      <li><a href="#response">Response Format</a></li>
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#publish">Publishing</a></li>
+    </ul>
+  </nav>
+
+  <!-- Connecting -->
+  <section id="connect">
+    <h2>Connecting</h2>
+    <p>No installation required — the server runs on Cloudflare's edge. Add it to any MCP-compatible client.</p>
+
+    <div style="margin-bottom:16px">
+      <p style="font-size:13px;font-weight:600;color:var(--fg);margin:0 0 6px">Claude Desktop — <code>claude_desktop_config.json</code></p>
+      <div class="code-block">
+        <div class="code-top"><span class="code-lang">JSON</span><button class="copy" onclick="cp(this)">Copy</button></div>
+        <pre>{
+  "mcpServers": {
+    "job-boards": {
+      "url": "https://job-boards-mcp.saba-dahboor.workers.dev/sse"
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <p style="font-size:13px;font-weight:600;color:var(--fg);margin:0 0 6px">Claude Code (CLI)</p>
+      <div class="code-block">
+        <div class="code-top"><span class="code-lang">Shell</span><button class="copy" onclick="cp(this)">Copy</button></div>
+        <pre>claude mcp add job-boards --transport sse \
+  https://job-boards-mcp.saba-dahboor.workers.dev/sse</pre>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <p style="font-size:13px;font-weight:600;color:var(--fg);margin:0 0 6px">Cursor — <code>.cursor/mcp.json</code></p>
+      <div class="code-block">
+        <div class="code-top"><span class="code-lang">JSON</span><button class="copy" onclick="cp(this)">Copy</button></div>
+        <pre>{
+  "mcpServers": {
+    "job-boards": {
+      "url": "https://job-boards-mcp.saba-dahboor.workers.dev/sse"
+    }
+  }
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Input schema -->
+  <section id="schema">
+    <h2>Input Schema</h2>
+    <p>All five tools share the same input parameters. <strong>title</strong> and <strong>location</strong> are required.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="p-name">title</span><span class="badge req">required</span></td>
+            <td><span class="p-type">string</span></td>
+            <td>—</td>
+            <td>Job title keyword — case-insensitive substring. E.g. <code>"backend"</code>, <code>"data engineer"</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="p-name">location</span><span class="badge req">required</span></td>
+            <td><span class="p-type">string</span></td>
+            <td>—</td>
+            <td>City, country, or <code>"remote"</code>. Country names are normalized to ISO codes (<code>"United States"</code> → <code>US</code>, <code>"UK"</code> → <code>GB</code>, etc.).</td>
+          </tr>
+          <tr>
+            <td><span class="p-name">company</span><span class="badge opt">optional</span></td>
+            <td><span class="p-type">string</span></td>
+            <td>—</td>
+            <td>Filter by company name substring. Omit to search all tracked companies.</td>
+          </tr>
+          <tr>
+            <td><span class="p-name">daysAgo</span><span class="badge opt">optional</span></td>
+            <td><span class="p-type">integer</span></td>
+            <td>1 – 365</td>
+            <td>Only include jobs published within this many days. Defaults to each tool's configured value.</td>
+          </tr>
+          <tr>
+            <td><span class="p-name">limit</span><span class="badge opt">optional</span></td>
+            <td><span class="p-type">integer</span></td>
+            <td>1 – 100, default 20</td>
+            <td>Max results per page. Use with <code>offset</code> to paginate.</td>
+          </tr>
+          <tr>
+            <td><span class="p-name">offset</span><span class="badge opt">optional</span></td>
+            <td><span class="p-type">integer</span></td>
+            <td>≥ 0, default 0</td>
+            <td>Results to skip. Pass <code>nextOffset</code> from the summary to fetch the next page.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Response format -->
+  <section id="response">
+    <h2>Response Format</h2>
+    <p>Every tool returns two content items: a JSON summary and a Markdown table.</p>
+
+    <h3>content[0] — Summary</h3>
+    <div class="code-block">
+      <div class="code-top"><span class="code-lang">JSON</span><button class="copy" onclick="cp(this)">Copy</button></div>
+      <pre>{
+  "title": "backend engineer",
+  "location": "United States",
+  "company": "all",
+  "showing": "1–20 of 47",
+  "companiesSearched": 120,
+  "companiesWithMatches": 14,
+  "daysAgo": 7,
+  "runAt": "2025-10-18T09:42:11.000Z",
+  "nextOffset": 20   // only present when more pages exist
+}</pre>
+    </div>
+
+    <h3>content[1] — Markdown table</h3>
+    <p>Columns vary by source — see each tool below. Returns <em>No matching jobs found.</em> when empty.</p>
+  </section>
+
+  <hr>
+
+  <!-- Tools -->
+  <section id="tools">
+    <h2>Tools</h2>
+
+    <div class="tool">
+      <div class="tool-name">get_ashby_jobs</div>
+      <p class="tool-desc">Jobs from Ashby-hosted career pages. Includes compensation when listed.</p>
+      <h3>Response columns</h3>
+      <div class="tags">
+        <span class="tag">companyName</span><span class="tag">title</span><span class="tag">team</span>
+        <span class="tag">employmentType</span><span class="tag">location</span><span class="tag">country</span>
+        <span class="tag">isRemote</span><span class="tag">compensation</span><span class="tag">publishedAt</span><span class="tag">jobUrl</span>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-name">get_lever_jobs</div>
+      <p class="tool-desc">Jobs from Lever-hosted career pages. Includes salary range and direct apply URL when available.</p>
+      <h3>Response columns</h3>
+      <div class="tags">
+        <span class="tag">companyName</span><span class="tag">title</span><span class="tag">department</span>
+        <span class="tag">team</span><span class="tag">employmentType</span><span class="tag">location</span>
+        <span class="tag">country</span><span class="tag">workplaceType</span><span class="tag">salaryRange</span>
+        <span class="tag">publishedAt</span><span class="tag">jobUrl</span><span class="tag">applyUrl</span>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-name">get_greenhouse_jobs</div>
+      <p class="tool-desc">Jobs from Greenhouse-hosted career pages. Includes department and office breakdown.</p>
+      <h3>Response columns</h3>
+      <div class="tags">
+        <span class="tag">companyName</span><span class="tag">title</span><span class="tag">department</span>
+        <span class="tag">office</span><span class="tag">location</span><span class="tag">publishedAt</span><span class="tag">jobUrl</span>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-name">get_smartrecruiters_jobs</div>
+      <p class="tool-desc">Jobs from SmartRecruiters-hosted career pages. Includes experience level and remote/hybrid flags.</p>
+      <h3>Response columns</h3>
+      <div class="tags">
+        <span class="tag">companyName</span><span class="tag">title</span><span class="tag">function</span>
+        <span class="tag">employmentType</span><span class="tag">experienceLevel</span><span class="tag">location</span>
+        <span class="tag">country</span><span class="tag">remote</span><span class="tag">hybrid</span>
+        <span class="tag">publishedAt</span><span class="tag">jobUrl</span>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-name">get_gem_jobs</div>
+      <p class="tool-desc">Jobs from Gem-hosted career pages. Includes location type (remote, on-site, hybrid).</p>
+      <h3>Response columns</h3>
+      <div class="tags">
+        <span class="tag">companyName</span><span class="tag">title</span><span class="tag">department</span>
+        <span class="tag">employmentType</span><span class="tag">location</span><span class="tag">locationType</span>
+        <span class="tag">publishedAt</span><span class="tag">jobUrl</span>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- Publishing -->
+  <section id="publish">
+    <h2>Publishing &amp; Sharing</h2>
+    <p>To make the server discoverable, submit it to one of these registries:</p>
+    <ul style="color:var(--fg-muted); padding-left:20px; display:flex; flex-direction:column; gap:6px; margin:0 0 16px">
+      <li><a href="https://smithery.ai" target="_blank">Smithery</a> — most active MCP marketplace, web UI for submitting</li>
+      <li><a href="https://mcp.so" target="_blank">mcp.so</a> — community directory, submit via GitHub PR</li>
+      <li><a href="https://modelcontextprotocol.io/servers" target="_blank">modelcontextprotocol.io/servers</a> — official curated list, PR to the <code>modelcontextprotocol/servers</code> repo</li>
+    </ul>
+    <p>When sharing, always include the SSE endpoint URL and a config snippet so people can connect in one step.</p>
+  </section>
+
+</div>
+
+<script>
+function cp(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent.trim()).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1800);
+  }).catch(() => {
+    const r = document.createRange();
+    r.selectNodeContents(pre);
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+  });
+}
+</script>

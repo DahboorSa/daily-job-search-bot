@@ -7,6 +7,8 @@
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 ![Cost](https://img.shields.io/badge/Cost-%240%2Fmonth-brightgreen?style=flat)
 
+📖 **[MCP API Reference](https://dahboorsa.github.io/daily-job-search-bot/)** — tool schemas, parameters, and connection snippets
+
 ---
 
 ## 📸 Preview
