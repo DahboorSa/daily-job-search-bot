@@ -52,6 +52,15 @@ test('fetchAshbyJobs keeps jobs with no publish date and survives bad companies'
   assert.equal(out.length, 1);
 });
 
+test('fetchAshbyJobs filters by titleKeyword when provided', async () => {
+  const out = await run(
+    [job(), job({ title: 'Frontend Engineer', department: 'Engineering' }), job({ title: 'Product Manager', department: 'Engineering' })],
+    { daysAgo: 7, titleKeyword: 'frontend' },
+  );
+  assert.equal(out.length, 1);
+  assert.equal(out[0].job.title, 'Frontend Engineer');
+});
+
 test('normalizeAshbyJob maps fields and salary floor', () => {
   const n = normalizeAshbyJob({
     companyName: 'acme',

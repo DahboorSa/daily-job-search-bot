@@ -1,4 +1,6 @@
 export const greenhouseCompanies = [
+  'centralreach',
+  'smartsheet',
   'novacredit',
   'canopyworks',
   'calendly',

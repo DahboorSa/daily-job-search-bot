@@ -26,7 +26,7 @@
 Every weekday morning, this bot automatically:
 
 1. 🔍 **Searches job boards** (Indeed, LinkedIn, Glassdoor & more) for new jobs matching your profile
-2. 🏢 **Searches ~130 top tech companies' own career pages** directly (OpenAI, Notion, Ramp, Linear, Cursor & more via Ashby-hosted boards) — catches roles before they hit the aggregators. Greenhouse-hosted boards (Stripe, Airbnb, Figma & more) are searched too
+2. 🏢 **Searches ~300+ top tech companies' own career pages** directly across five board platforms (Ashby, Greenhouse, Lever, SmartRecruiters & Gem) — catches roles before they hit the aggregators
 3. 🎯 **Scores each job** by how well it matches your skills (0–100)
 4. 📄 **Generates a tailored `.docx` resume** for every strong match
 5. 🔗 **Generates a LinkedIn search link** for each company
@@ -239,10 +239,12 @@ export const DATE_POSTED = '3days';
 export const FETCH_JSEARCH = true;
 export const SEND_EMAIL = true;
 export const FETCH_GLASSDOOR = true;
+export const DAYS_AGO = 7;
 export const FETCH_ASHBY = true;
-export const ASHBY_DAYS_AGO = 7;
 export const FETCH_GREENHOUSE = true;
-export const GREENHOUSE_DAYS_AGO = 7;
+export const FETCH_LEVER = true;
+export const FETCH_SMARTRECRUITERS = true;
+export const FETCH_GEM = true;
 ```
 
 | Setting | What it does |
@@ -254,10 +256,12 @@ export const GREENHOUSE_DAYS_AGO = 7;
 | `FETCH_JSEARCH` | Set to `false` to skip JSearch (Indeed/LinkedIn/Glassdoor aggregator) — saves your monthly RapidAPI limit, without removing the `RAPIDAPI_KEY` secret. |
 | `SEND_EMAIL` | Set to `false` to skip the daily email — the dashboard still updates. |
 | `FETCH_GLASSDOOR` | Set to `false` to skip Glassdoor salary lookups — saves your monthly RapidAPI limit. |
-| `FETCH_ASHBY` | Set to `false` to skip Ashby company boards (see `scripts/ashbyClient.js`). |
-| `ASHBY_DAYS_AGO` | How many days back to look for Ashby postings. |
-| `FETCH_GREENHOUSE` | Set to `false` to skip Greenhouse company boards (see `scripts/greenhouseClient.js`). |
-| `GREENHOUSE_DAYS_AGO` | How many days back to look for Greenhouse postings. |
+| `DAYS_AGO` | How many days back to look for postings across all company job boards (Ashby, Greenhouse, Lever, SmartRecruiters & Gem). |
+| `FETCH_ASHBY` | Set to `false` to skip Ashby company boards. |
+| `FETCH_GREENHOUSE` | Set to `false` to skip Greenhouse company boards. |
+| `FETCH_LEVER` | Set to `false` to skip Lever company boards. |
+| `FETCH_SMARTRECRUITERS` | Set to `false` to skip SmartRecruiters company boards. |
+| `FETCH_GEM` | Set to `false` to skip Gem company boards. |
 
 ### 🏢 Add or remove companies from the Ashby search
 
@@ -358,7 +362,7 @@ daily-job-search-bot/
 │   ├── gemClient.js                # Fetches + filters US engineering jobs from Gem-hosted boards
 │   ├── gemCompanies.js             # ✏️ List of Gem job board slugs to search
 │   ├── gemMcpServer.js             # Standalone MCP server exposing Gem search as an agent tool
-│   ├── mcpJobsServer.js            # Shared MCP server logic (tool, CSV export) used by both servers above
+│   ├── mcpJobsServer.js            # Shared MCP server logic (tool, table output, optional CSV) used by all five servers
 │   ├── htmlUtils.js                # HTML/JSON escaping for job text in the email and dashboard
 │   ├── setupProfile.js             # Parses a .docx resume into config/profile.json via Groq
 │   ├── jobsTracker.js              # Persists all jobs to data/jobs.json
@@ -374,11 +378,11 @@ daily-job-search-bot/
 ├── data/
 │   ├── searched_jobs.json          # Auto-created: no duplicate alerts
 │   ├── jobs.json                   # Auto-created: all tracked jobs with status
-│   ├── ashby_jobs_record.csv       # Auto-created: latest Ashby MCP server run, if used
-│   ├── greenhouse_jobs_record.csv  # Auto-created: latest Greenhouse MCP server run, if used
-│   ├── lever_jobs_record.csv       # Auto-created: latest Lever MCP server run, if used
-│   ├── smartrecruiters_jobs_record.csv # Auto-created: latest SmartRecruiters MCP server run, if used
-│   ├── gem_jobs_record.csv         # Auto-created: latest Gem MCP server run, if used
+│   ├── ashby_jobs_record.csv       # Auto-created: only when MCP_WRITE_CSV=true
+│   ├── greenhouse_jobs_record.csv  # Auto-created: only when MCP_WRITE_CSV=true
+│   ├── lever_jobs_record.csv       # Auto-created: only when MCP_WRITE_CSV=true
+│   ├── smartrecruiters_jobs_record.csv # Auto-created: only when MCP_WRITE_CSV=true
+│   ├── gem_jobs_record.csv         # Auto-created: only when MCP_WRITE_CSV=true
 │   └── dashboard.html              # Auto-created: open in browser to track jobs
 ├── output/
 │   └── YYYY-MM-DD/                 # Auto-created: daily resume files
@@ -438,7 +442,17 @@ npm run mcp:gem                     # Start the Gem search as a standalone MCP s
 }
 ```
 
-It provides a `get_jobs` tool (filter by `daysAgo`) that writes matches to `data/ashby_jobs_record.csv` and exposes that file as a readable resource — handy for asking an agent "find me recent backend roles at OpenAI or Notion" outside the daily email flow.
+It provides a `get_jobs` tool that returns a **markdown table** of matching jobs — handy for asking an agent "find me recent backend roles at OpenAI or Notion" outside the daily email flow.
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `title` | ✅ | Job title to search (case-insensitive substring, e.g. `"senior software engineer"`) |
+| `company` | ❌ | Filter by company name substring (e.g. `"stripe"`). Omit to search all companies. |
+| `daysAgo` | ❌ | How many days back to look (default 7) |
+| `limit` | ❌ | Max rows to return (default 20, max 100) |
+| `offset` | ❌ | Rows to skip — use with `limit` for pagination; `nextOffset` in the summary tells you when more pages exist |
+
+> 💡 **CSV export (local use only):** set `MCP_WRITE_CSV=true` in your environment to also write matches to `data/ashby_jobs_record.csv` and expose it as a readable resource.
 
 ### Greenhouse
 
@@ -455,10 +469,10 @@ It provides a `get_jobs` tool (filter by `daysAgo`) that writes matches to `data
 }
 ```
 
-Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_jobs_record.csv`. How it filters:
+Its `get_jobs` tool accepts the same parameters as the Ashby server (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
 
 - **US only** — Greenhouse locations are free text like `Seattle, WA`, so it matches a US state code or an explicit `US` / `USA` / `United States`.
-- **Engineering roles only** — the title must contain "software engineer" or "backend", and the department (when a job lists one) must be an engineering one.
+- **Engineering roles only** — the department (when listed) must be engineering; the `title` parameter controls the title match.
 - **Publish date** — uses `first_published`, not `updated_at`, so edited old postings don't reappear as new.
 - **No salary column** — Greenhouse's board API doesn't expose pay ranges.
 
@@ -479,14 +493,14 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/greenhouse_job
 }
 ```
 
-Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/lever_jobs_record.csv`. How it filters:
+Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
 
 - **US only** — uses the posting's `country` code (`US`).
-- **Engineering roles only** — the title must contain "software engineer" or "backend". Lever's department and team names are free text ("Hinge", "Dev"), so they aren't used to filter, only exported as columns.
+- **Engineering roles only** — the `title` parameter controls the title match. Lever's department/team names are free text, so they aren't used to filter.
 - **Publish date** — uses `createdAt`.
-- **Salary and links** — the CSV includes `salaryRange` (when the posting lists one), `jobUrl` (`hostedUrl`) and `applyUrl`.
+- **Salary** — the table includes `salaryRange` when the posting lists one.
 
-> ℹ️ Unlike Ashby and Greenhouse, Lever isn't part of the daily automated run — it's only available through the MCP server.
+> ℹ️ Lever is also part of the daily run; set `FETCH_LEVER = false` in `config/settings.js` to skip it.
 
 ### SmartRecruiters
 
@@ -503,15 +517,15 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/lever_jobs_rec
 }
 ```
 
-Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiters_jobs_record.csv`. How it filters:
+Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
 
 - **US only** — asks the API for `country=us` and checks `location.country` again on each posting.
-- **Engineering roles only** — the title (`name`) must contain "software engineer" or "backend". The department is often empty and the function is broad ("Information Technology"), so neither is used to filter.
+- **Engineering roles only** — the `title` parameter controls the title match. The department is often empty, so it isn't used to filter.
 - **Publish date** — uses `releasedDate`.
 - **Pagination** — fetches 100 postings per page, up to 20 pages per company.
-- **No salary column** — the postings list doesn't include pay. `jobUrl` is built as `jobs.smartrecruiters.com/<company>/<id>`.
+- **No salary column** — the postings list doesn't include pay.
 
-> ℹ️ Like Lever, SmartRecruiters is only available through the MCP server, not the daily run.
+> ℹ️ SmartRecruiters is also part of the daily run; set `FETCH_SMARTRECRUITERS = false` in `config/settings.js` to skip it.
 
 ### Gem
 
@@ -528,14 +542,14 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/smartrecruiter
 }
 ```
 
-Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/gem_jobs_record.csv`. How it filters:
+Its `get_jobs` tool accepts the same parameters (`title`, `company`, `daysAgo`, `limit`, `offset`) and returns a markdown table. How it filters:
 
 - **US only** — locations are free text like `New York, United States`, so it uses the same matcher as Greenhouse (a US state code or `US` / `USA` / `United States`).
-- **Engineering roles only** — the title must contain "software engineer" or "backend". Departments are often empty, so they're only exported as a column.
+- **Engineering roles only** — the `title` parameter controls the title match. Departments are often empty, so they aren't used to filter.
 - **Publish date** — uses `first_published_at`.
-- **No salary column** — Gem's job board API doesn't expose pay ranges. `jobUrl` is the posting's `absolute_url`.
+- **No salary column** — Gem's job board API doesn't expose pay ranges.
 
-> ℹ️ Gem is only available through the MCP server, not the daily run.
+> ℹ️ Gem is also part of the daily run; set `FETCH_GEM = false` in `config/settings.js` to skip it.
 
 ---
 
@@ -572,9 +586,15 @@ Its `get_jobs` tool (filter by `daysAgo`) writes matches to `data/gem_jobs_recor
 - [x] Ashby search exposed as a standalone MCP server for agent use
 - [x] Greenhouse board search (US engineering roles) exposed as a standalone MCP server
 - [x] Add Greenhouse to the daily automated run
-- [x] Lever board search (US engineering roles) exposed as a standalone MCP server
-- [x] SmartRecruiters board search (US engineering roles) exposed as a standalone MCP server
-- [x] Gem board search (US engineering roles) exposed as a standalone MCP server
+- [x] Lever board search exposed as a standalone MCP server and added to the daily run
+- [x] SmartRecruiters board search exposed as a standalone MCP server and added to the daily run
+- [x] Gem board search exposed as a standalone MCP server and added to the daily run
+- [x] MCP `get_jobs` tool: dynamic title filter, company filter, limit/offset pagination, markdown table output
+- [ ] MCP `get_jobs` country filter param — all five boards currently hard-filter to US only; adding a `country` param needs per-board value mapping (Lever uses `country` code `US`, Greenhouse/Gem match free-text location strings, SmartRecruiters takes a `country=us` query param, Ashby uses `addressCountry`)
+- [ ] Server-side result caching for MCP pagination (avoid re-fetching all companies per page)
+- [ ] Workable board search (public API, no key — mid-size tech companies)
+- [ ] Breezy HR board search (public API, no key — growth-stage companies)
+- [ ] Workday coverage (largest gap — enterprise companies like Google, Amazon, Microsoft — requires per-company reverse-engineering, no standard public API)
 - [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
 - [ ] Rejection detection via email parsing

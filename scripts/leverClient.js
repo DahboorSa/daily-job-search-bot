@@ -4,13 +4,12 @@ import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './job
 const BASE_URL = 'https://api.lever.co/v0/postings';
 export const LEVER_DEFAULT_DAYS_AGO = 7;
 
+const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
+
 // Lever's department/team names are free text ("Hinge", "Dev"), so filter on title only
-function isEngineeringJob(job) {
+function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
   const title = job.text?.toLowerCase() ?? '';
-  return (
-    job.country?.toUpperCase() === 'US' &&
-    (title.includes('software engineer') || title.includes('backend'))
-  );
+  return job.country?.toUpperCase() === 'US' && titleMatch(title);
 }
 
 // createdAt is epoch milliseconds
@@ -32,15 +31,18 @@ async function fetchCompanyJobs(companyName) {
 }
 
 // Returns US engineering jobs published within the window as { companyName, job }
-export async function fetchLeverJobs({ daysAgo = LEVER_DEFAULT_DAYS_AGO } = {}) {
+export async function fetchLeverJobs({ daysAgo = LEVER_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  const titleMatch = titleKeyword
+    ? (t) => t.includes(titleKeyword.toLowerCase())
+    : DEFAULT_TITLE_MATCH;
 
   const matches = [];
   const results = await Promise.allSettled(
     leverCompanies.map(async (companyName) => {
       const jobs = await fetchCompanyJobs(companyName);
       const matched = jobs
-        .filter(isEngineeringJob)
+        .filter((job) => isEngineeringJob(job, titleMatch))
         .filter((job) => isPublishedWithin(job, cutoffDate));
       for (const job of matched) matches.push({ companyName, job });
     }),

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { htmlToText, normalizeGreenhouseJob } from '../scripts/greenhouseClient.js';
+import { htmlToText, normalizeGreenhouseJob, fetchGreenhouseJobs } from '../scripts/greenhouseClient.js';
+import { greenhouseCompanies } from '../scripts/greenhouseCompanies.js';
+import { mockFetch, silenceConsole } from './helpers.js';
 
 test('htmlToText decodes entities, strips tags and keeps paragraph breaks', () => {
   const input = '&lt;p&gt;R&amp;amp;D &amp;#8217;s &amp;mdash; ok&lt;/p&gt;&lt;p&gt;Two&lt;/p&gt;';
@@ -58,4 +60,24 @@ test('normalizeGreenhouseJob detects remote by whole word and treats hybrid as n
 test('htmlToText decodes more named entities and leaves unknown ones', () => {
   assert.equal(htmlToText('caf&eacute; &deg; &frac12; &laquo;x&raquo;'), 'café ° ½ «x»');
   assert.equal(htmlToText('a &unknownthing; b'), 'a &unknownthing; b');
+});
+
+test('fetchGreenhouseJobs filters by titleKeyword when provided', async () => {
+  const [target] = greenhouseCompanies;
+  const job = (title, location = 'New York, NY') => ({ title, location: { name: location }, departments: [] });
+  const restoreFetch = mockFetch((url) => {
+    if (url.includes(`/${target}/`)) {
+      return { body: { jobs: [job('Software Engineer'), job('Frontend Engineer'), job('Product Manager')] } };
+    }
+    return { body: { jobs: [] } };
+  });
+  const restoreConsole = silenceConsole();
+  try {
+    const out = await fetchGreenhouseJobs({ daysAgo: 7, titleKeyword: 'frontend' });
+    assert.equal(out.length, 1);
+    assert.equal(out[0].job.title, 'Frontend Engineer');
+  } finally {
+    restoreFetch();
+    restoreConsole();
+  }
 });

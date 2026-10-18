@@ -51,6 +51,22 @@ test('fetchLeverJobs survives failing companies and non-array responses', async 
   assert.equal((await run([job()])).length, 1);
 });
 
+test('fetchLeverJobs filters by titleKeyword when provided', async () => {
+  const restoreFetch = mockFetch((url) => {
+    if (url.includes(`/${target}?`)) return { body: [job(), job({ text: 'Frontend Engineer' }), job({ text: 'Product Manager' })] };
+    return { body: [] };
+  });
+  const restoreConsole = silenceConsole();
+  try {
+    const out = await fetchLeverJobs({ daysAgo: 7, titleKeyword: 'frontend' });
+    assert.equal(out.length, 1);
+    assert.equal(out[0].job.text, 'Frontend Engineer');
+  } finally {
+    restoreFetch();
+    restoreConsole();
+  }
+});
+
 test('formatLeverSalary formats ranges by interval', () => {
   assert.equal(formatLeverSalary({ min: 186000, max: 223000, currency: 'USD', interval: 'per-year-salary' }), 'USD 186,000 – 223,000/yr');
   assert.equal(formatLeverSalary({ min: 35, max: 38, currency: 'CAD', interval: 'per-hour-wage' }), 'CAD 35 – 38/hr');

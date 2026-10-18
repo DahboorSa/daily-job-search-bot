@@ -56,6 +56,22 @@ test('fetchGemJobs survives failing companies and non-array responses', async ()
   assert.equal((await run([job()])).length, 1);
 });
 
+test('fetchGemJobs filters by titleKeyword when provided', async () => {
+  const restoreFetch = mockFetch((url) => {
+    if (url.includes(`/${target}/`)) return { body: [job(), job({ title: 'Frontend Engineer' }), job({ title: 'Product Manager' })] };
+    return { body: [] };
+  });
+  const restoreConsole = silenceConsole();
+  try {
+    const out = await fetchGemJobs({ daysAgo: 7, titleKeyword: 'frontend' });
+    assert.equal(out.length, 1);
+    assert.equal(out[0].job.title, 'Frontend Engineer');
+  } finally {
+    restoreFetch();
+    restoreConsole();
+  }
+});
+
 test('normalizeGemJob maps fields correctly', () => {
   const n = normalizeGemJob({
     companyName: 'stripe',

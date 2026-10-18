@@ -4,7 +4,9 @@ import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './job
 const BASE_URL = 'https://api.ashbyhq.com/posting-api/job-board';
 export const ASHBY_DEFAULT_DAYS_AGO = 7;
 
-function isEngineeringJob(job) {
+const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
+
+function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
   return (
     (job.location?.includes('US') ||
       job.location?.includes('USA') ||
@@ -13,8 +15,7 @@ function isEngineeringJob(job) {
       job.country?.includes('US')) &&
     (job.department?.toLowerCase().includes('engineer') ||
       job.team?.toLowerCase().includes('engineer')) &&
-    (job.title.toLowerCase().includes('software engineer') ||
-      job.title.toLowerCase().includes('backend'))
+    titleMatch(job.title.toLowerCase())
   );
 }
 
@@ -39,17 +40,19 @@ async function fetchCompanyJobs(companyName) {
 // Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchAshbyJobs({
   daysAgo = ASHBY_DEFAULT_DAYS_AGO,
+  titleKeyword,
 } = {}) {
-  const cutoffDate = new Date(
-    Date.now() - daysAgo * 24 * 60 * 60 * 1000,
-  );
+  const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  const titleMatch = titleKeyword
+    ? (t) => t.includes(titleKeyword.toLowerCase())
+    : DEFAULT_TITLE_MATCH;
 
   const matches = [];
   const results = await Promise.allSettled(
     ashbyCompanies.map(async (companyName) => {
       const jobs = await fetchCompanyJobs(companyName);
       const matched = jobs
-        .filter(isEngineeringJob)
+        .filter((job) => isEngineeringJob(job, titleMatch))
         .filter((job) => isPublishedWithin(job, cutoffDate));
       for (const job of matched) matches.push({ companyName, job });
     }),

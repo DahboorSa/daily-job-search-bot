@@ -70,6 +70,24 @@ test('fetchSmartRecruitersJobs survives failing companies and malformed response
   assert.equal((await run(page([job()]))).out.length, 1);
 });
 
+test('fetchSmartRecruitersJobs filters by titleKeyword when provided', async () => {
+  const restoreFetch = mockFetch((url) => {
+    if (url.includes(`/${target}/`)) {
+      return { body: { totalFound: 3, content: [job(), job({ name: 'Frontend Engineer' }), job({ name: 'Product Manager' })] } };
+    }
+    return { body: { totalFound: 0, content: [] } };
+  });
+  const restoreConsole = silenceConsole();
+  try {
+    const out = await fetchSmartRecruitersJobs({ daysAgo: 7, titleKeyword: 'frontend' });
+    assert.equal(out.length, 1);
+    assert.equal(out[0].job.name, 'Frontend Engineer');
+  } finally {
+    restoreFetch();
+    restoreConsole();
+  }
+});
+
 test('smartRecruitersJobUrl prefers the company identifier', () => {
   assert.equal(
     smartRecruitersJobUrl({ companyName: 'canva', job: { id: '1', company: { identifier: 'Canva' } } }),

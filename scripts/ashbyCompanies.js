@@ -1,4 +1,7 @@
 export const ashbyCompanies = [
+  'luminary',
+  'sardine',
+  'frontify',
   'trovehq',
   'revive',
   'abacum',

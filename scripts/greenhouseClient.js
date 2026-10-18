@@ -16,7 +16,9 @@ function departmentNames(job) {
   );
 }
 
-function isEngineeringJob(job) {
+const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
+
+function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
   const departments = departmentNames(job);
   // Boards often omit departments, so only filter when one is listed
   const inEngineering =
@@ -24,11 +26,7 @@ function isEngineeringJob(job) {
     departments.some((name) => /\b(eng|engineer|engineers|engineering)\b/i.test(name));
   const title = job.title?.toLowerCase() ?? '';
 
-  return (
-    isUsLocation(job.location?.name) &&
-    inEngineering &&
-    (title.includes('software engineer') || title.includes('backend'))
-  );
+  return isUsLocation(job.location?.name) && inEngineering && titleMatch(title);
 }
 
 function isPublishedWithin(job, cutoffDate) {
@@ -51,15 +49,19 @@ async function fetchCompanyJobs(companyName) {
 // Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchGreenhouseJobs({
   daysAgo = GREENHOUSE_DEFAULT_DAYS_AGO,
+  titleKeyword,
 } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  const titleMatch = titleKeyword
+    ? (t) => t.includes(titleKeyword.toLowerCase())
+    : DEFAULT_TITLE_MATCH;
 
   const matches = [];
   const results = await Promise.allSettled(
     greenhouseCompanies.map(async (companyName) => {
       const jobs = await fetchCompanyJobs(companyName);
       const matched = jobs
-        .filter(isEngineeringJob)
+        .filter((job) => isEngineeringJob(job, titleMatch))
         .filter((job) => isPublishedWithin(job, cutoffDate));
       for (const job of matched) matches.push({ companyName, job });
     }),

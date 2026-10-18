@@ -6,13 +6,12 @@ const PAGE_SIZE = 100; // API maximum
 const MAX_PAGES = 20;
 export const SMARTRECRUITERS_DEFAULT_DAYS_AGO = 7;
 
+const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
+
 // Department is often empty and function too broad, so filter on title only
-function isEngineeringJob(job) {
+function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
   const title = job.name?.toLowerCase() ?? '';
-  return (
-    job.location?.country?.toLowerCase() === 'us' &&
-    (title.includes('software engineer') || title.includes('backend'))
-  );
+  return job.location?.country?.toLowerCase() === 'us' && titleMatch(title);
 }
 
 function isPublishedWithin(job, cutoffDate) {
@@ -41,15 +40,18 @@ async function fetchCompanyJobs(companyName) {
 }
 
 // Returns US engineering jobs published within the window as { companyName, job }
-export async function fetchSmartRecruitersJobs({ daysAgo = SMARTRECRUITERS_DEFAULT_DAYS_AGO } = {}) {
+export async function fetchSmartRecruitersJobs({ daysAgo = SMARTRECRUITERS_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  const titleMatch = titleKeyword
+    ? (t) => t.includes(titleKeyword.toLowerCase())
+    : DEFAULT_TITLE_MATCH;
 
   const matches = [];
   const results = await Promise.allSettled(
     smartRecruitersCompanies.map(async (companyName) => {
       const jobs = await fetchCompanyJobs(companyName);
       const matched = jobs
-        .filter(isEngineeringJob)
+        .filter((job) => isEngineeringJob(job, titleMatch))
         .filter((job) => isPublishedWithin(job, cutoffDate));
       for (const job of matched) matches.push({ companyName, job });
     }),
