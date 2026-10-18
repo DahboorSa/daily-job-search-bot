@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchSmartRecruitersJobs, smartRecruitersJobUrl } from '../scripts/smartRecruitersClient.js';
+import { fetchSmartRecruitersJobs, smartRecruitersJobUrl, normalizeSmartRecruitersJob } from '../scripts/smartRecruitersClient.js';
 import { smartRecruitersCompanies } from '../scripts/smartRecruitersCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
@@ -76,4 +76,40 @@ test('smartRecruitersJobUrl prefers the company identifier', () => {
     'https://jobs.smartrecruiters.com/Canva/1',
   );
   assert.equal(smartRecruitersJobUrl({ companyName: 'canva', job: { id: '1' } }), 'https://jobs.smartrecruiters.com/canva/1');
+});
+
+test('normalizeSmartRecruitersJob maps fields correctly', () => {
+  const n = normalizeSmartRecruitersJob({
+    companyName: 'canva',
+    job: {
+      id: '42',
+      name: 'Software Engineer',
+      releasedDate: '2026-10-01T00:00:00Z',
+      company: { name: 'Canva', identifier: 'Canva' },
+      location: { country: 'us', fullLocation: 'Austin, TX, United States' },
+    },
+  });
+  assert.equal(n.title, 'Software Engineer');
+  assert.equal(n.company, 'Canva');
+  assert.equal(n.location, 'Austin, TX, United States');
+  assert.equal(n.applyUrl, 'https://jobs.smartrecruiters.com/Canva/42');
+  assert.equal(n.postedAt, '2026-10-01T00:00:00Z');
+  assert.equal(n.jobType, 'On-site / Hybrid');
+});
+
+test('normalizeSmartRecruitersJob falls back for missing fields', () => {
+  const n = normalizeSmartRecruitersJob({ companyName: 'canva', job: { id: '1', name: 'Backend Engineer' } });
+  assert.equal(n.company, 'canva');
+  assert.equal(n.location, 'Unknown');
+  assert.equal(n.salary, 'Not specified');
+  assert.equal(n.postedAt, '');
+  assert.equal(n.jobType, 'On-site / Hybrid');
+});
+
+test('normalizeSmartRecruitersJob detects remote jobs', () => {
+  const n = normalizeSmartRecruitersJob({
+    companyName: 'canva',
+    job: { id: '1', name: 'Software Engineer', location: { fullLocation: 'Remote - United States' } },
+  });
+  assert.equal(n.jobType, 'Remote');
 });

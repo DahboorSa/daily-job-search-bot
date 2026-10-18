@@ -21,14 +21,20 @@ export const SEND_EMAIL = true;
 // Look up Glassdoor salary data
 export const FETCH_GLASSDOOR = true;
 
+// How many days back to look for postings on all company job boards
+export const DAYS_AGO = 7;
+
 // Search Ashby company boards
 export const FETCH_ASHBY = true;
-
-// How many days back to look for Ashby postings
-export const ASHBY_DAYS_AGO = 7;
 
 // Search Greenhouse company boards
 export const FETCH_GREENHOUSE = true;
 
-// How many days back to look for Greenhouse postings
-export const GREENHOUSE_DAYS_AGO = 7;
+// Search Lever company boards
+export const FETCH_LEVER = true;
+
+// Search SmartRecruiters company boards
+export const FETCH_SMARTRECRUITERS = true;
+
+// Search Gem company boards
+export const FETCH_GEM = true;

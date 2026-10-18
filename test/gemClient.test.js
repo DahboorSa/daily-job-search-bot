@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchGemJobs } from '../scripts/gemClient.js';
+import { fetchGemJobs, normalizeGemJob } from '../scripts/gemClient.js';
 import { gemCompanies } from '../scripts/gemCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
@@ -54,4 +54,39 @@ test('fetchGemJobs filters by location, title and age', async () => {
 test('fetchGemJobs survives failing companies and non-array responses', async () => {
   assert.equal((await run([], { code: 404 })).length, 0);
   assert.equal((await run([job()])).length, 1);
+});
+
+test('normalizeGemJob maps fields correctly', () => {
+  const n = normalizeGemJob({
+    companyName: 'stripe',
+    job: {
+      title: 'Software Engineer',
+      first_published_at: '2026-10-01T00:00:00Z',
+      absolute_url: 'https://jobs.gem.com/stripe/1',
+      location: { name: 'New York, NY' },
+    },
+  });
+  assert.equal(n.title, 'Software Engineer');
+  assert.equal(n.company, 'stripe');
+  assert.equal(n.location, 'New York, NY');
+  assert.equal(n.applyUrl, 'https://jobs.gem.com/stripe/1');
+  assert.equal(n.postedAt, '2026-10-01T00:00:00Z');
+  assert.equal(n.jobType, 'On-site / Hybrid');
+});
+
+test('normalizeGemJob falls back for missing fields', () => {
+  const n = normalizeGemJob({ companyName: 'stripe', job: { title: 'Backend Engineer' } });
+  assert.equal(n.location, 'Unknown');
+  assert.equal(n.salary, 'Not specified');
+  assert.equal(n.applyUrl, '#');
+  assert.equal(n.postedAt, '');
+  assert.equal(n.jobType, 'On-site / Hybrid');
+});
+
+test('normalizeGemJob detects remote jobs', () => {
+  const n = normalizeGemJob({
+    companyName: 'stripe',
+    job: { title: 'Software Engineer', location: { name: 'Remote, United States' } },
+  });
+  assert.equal(n.jobType, 'Remote');
 });

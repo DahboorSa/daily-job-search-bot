@@ -1,4 +1,5 @@
 import { leverCompanies } from './leverCompanies.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.lever.co/v0/postings';
 export const LEVER_DEFAULT_DAYS_AGO = 7;
@@ -62,4 +63,25 @@ export function formatLeverSalary(range) {
   if (!range?.min || !range?.max) return 'No compensation';
   const fmt = (n) => Number(n).toLocaleString('en-US');
   return `${range.currency ?? ''} ${fmt(range.min)} – ${fmt(range.max)}${SALARY_INTERVALS[range.interval] ?? ''}`.trim();
+}
+
+const LEVER_REMOTE_PATTERN = /\bremote\b|work from home|\banywhere\b/i;
+const LEVER_HYBRID_PATTERN = /\bhybrid\b/i;
+
+function isRemote(job) {
+  const text = `${job.workplaceType ?? ''} ${job.text ?? ''}`;
+  return LEVER_REMOTE_PATTERN.test(text) && !LEVER_HYBRID_PATTERN.test(text);
+}
+
+export function normalizeLeverJob({ companyName, job }) {
+  return {
+    title: job.text,
+    company: companyName,
+    location: job.categories?.location || job.categories?.allLocations?.[0] || UNKNOWN_LOCATION,
+    salary: job.salaryRange ? formatLeverSalary(job.salaryRange) : NOT_SPECIFIED,
+    description: '',
+    applyUrl: job.hostedUrl || FALLBACK_URL,
+    postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : '',
+    jobType: jobTypeFor(isRemote(job)),
+  };
 }

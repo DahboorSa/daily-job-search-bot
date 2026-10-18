@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchLeverJobs, formatLeverSalary } from '../scripts/leverClient.js';
+import { fetchLeverJobs, formatLeverSalary, normalizeLeverJob } from '../scripts/leverClient.js';
 import { leverCompanies } from '../scripts/leverCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
@@ -60,4 +60,42 @@ test('formatLeverSalary formats ranges by interval', () => {
 test('formatLeverSalary falls back when there is no range', () => {
   assert.equal(formatLeverSalary(undefined), 'No compensation');
   assert.equal(formatLeverSalary({ currency: 'USD' }), 'No compensation');
+});
+
+test('normalizeLeverJob maps fields correctly', () => {
+  const n = normalizeLeverJob({
+    companyName: 'acme',
+    job: {
+      text: 'Software Engineer',
+      createdAt: new Date('2026-10-01T00:00:00Z').getTime(),
+      hostedUrl: 'https://jobs.lever.co/acme/1',
+      categories: { location: 'San Francisco, CA' },
+      salaryRange: { min: 140000, max: 180000, currency: 'USD', interval: 'per-year-salary' },
+      workplaceType: 'remote',
+    },
+  });
+  assert.equal(n.title, 'Software Engineer');
+  assert.equal(n.company, 'acme');
+  assert.equal(n.location, 'San Francisco, CA');
+  assert.equal(n.salary, 'USD 140,000 – 180,000/yr');
+  assert.equal(n.applyUrl, 'https://jobs.lever.co/acme/1');
+  assert.equal(n.postedAt, '2026-10-01T00:00:00.000Z');
+  assert.equal(n.jobType, 'Remote');
+});
+
+test('normalizeLeverJob falls back for missing fields', () => {
+  const n = normalizeLeverJob({ companyName: 'acme', job: { text: 'Backend Engineer' } });
+  assert.equal(n.location, 'Unknown');
+  assert.equal(n.salary, 'Not specified');
+  assert.equal(n.applyUrl, '#');
+  assert.equal(n.postedAt, '');
+  assert.equal(n.jobType, 'On-site / Hybrid');
+});
+
+test('normalizeLeverJob prefers categories.location over allLocations', () => {
+  const n = normalizeLeverJob({
+    companyName: 'acme',
+    job: { text: 'T', categories: { allLocations: ['Austin, TX'] } },
+  });
+  assert.equal(n.location, 'Austin, TX');
 });

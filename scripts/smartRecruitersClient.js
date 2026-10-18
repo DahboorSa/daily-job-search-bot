@@ -1,4 +1,5 @@
 import { smartRecruitersCompanies } from './smartRecruitersCompanies.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.smartrecruiters.com/v1/companies';
 const PAGE_SIZE = 100; // API maximum
@@ -65,4 +66,25 @@ export async function fetchSmartRecruitersJobs({ daysAgo = SMARTRECRUITERS_DEFAU
 
 export function smartRecruitersJobUrl({ companyName, job }) {
   return `https://jobs.smartrecruiters.com/${job.company?.identifier ?? companyName}/${job.id}`;
+}
+
+const SR_REMOTE_PATTERN = /\bremote\b|work from home|\banywhere\b/i;
+const SR_HYBRID_PATTERN = /\bhybrid\b/i;
+
+function isRemote(job) {
+  const text = `${job.location?.fullLocation ?? ''} ${job.name ?? ''}`;
+  return SR_REMOTE_PATTERN.test(text) && !SR_HYBRID_PATTERN.test(text);
+}
+
+export function normalizeSmartRecruitersJob({ companyName, job }) {
+  return {
+    title: job.name,
+    company: job.company?.name || companyName,
+    location: job.location?.fullLocation || UNKNOWN_LOCATION,
+    salary: NOT_SPECIFIED,
+    description: '',
+    applyUrl: smartRecruitersJobUrl({ companyName, job }),
+    postedAt: job.releasedDate || '',
+    jobType: jobTypeFor(isRemote(job)),
+  };
 }

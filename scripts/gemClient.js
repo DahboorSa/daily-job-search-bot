@@ -1,5 +1,6 @@
 import { gemCompanies } from './gemCompanies.js';
 import { isUsLocation } from './jobUtils.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.gem.com/job_board/v0';
 export const GEM_DEFAULT_DAYS_AGO = 7;
@@ -50,4 +51,25 @@ export async function fetchGemJobs({ daysAgo = GEM_DEFAULT_DAYS_AGO } = {}) {
     }
   });
   return matches;
+}
+
+const GEM_REMOTE_PATTERN = /\bremote\b|work from home|\banywhere\b/i;
+const GEM_HYBRID_PATTERN = /\bhybrid\b/i;
+
+function isRemoteJob(job) {
+  const text = `${job.location?.name ?? ''} ${job.title ?? ''}`;
+  return GEM_REMOTE_PATTERN.test(text) && !GEM_HYBRID_PATTERN.test(text);
+}
+
+export function normalizeGemJob({ companyName, job }) {
+  return {
+    title: job.title,
+    company: companyName,
+    location: job.location?.name || UNKNOWN_LOCATION,
+    salary: NOT_SPECIFIED,
+    description: '',
+    applyUrl: job.absolute_url || FALLBACK_URL,
+    postedAt: job.first_published_at || '',
+    jobType: jobTypeFor(isRemoteJob(job)),
+  };
 }

@@ -7,6 +7,9 @@ import { sendDailyReport } from './emailSender.js';
 import { getGlassdoorData } from './glassdoorClient.js';
 import { fetchAshbyJobs, normalizeAshbyJob } from './ashbyClient.js';
 import { fetchGreenhouseJobs, normalizeGreenhouseJob } from './greenhouseClient.js';
+import { fetchLeverJobs, normalizeLeverJob } from './leverClient.js';
+import { fetchSmartRecruitersJobs, normalizeSmartRecruitersJob } from './smartRecruitersClient.js';
+import { fetchGemJobs, normalizeGemJob } from './gemClient.js';
 import {
   getCountryCode,
   normalizeJob,
@@ -23,9 +26,11 @@ import {
   FETCH_GLASSDOOR,
   FETCH_JSEARCH,
   FETCH_ASHBY,
-  ASHBY_DAYS_AGO,
   FETCH_GREENHOUSE,
-  GREENHOUSE_DAYS_AGO,
+  FETCH_LEVER,
+  FETCH_SMARTRECRUITERS,
+  FETCH_GEM,
+  DAYS_AGO,
   DATE_POSTED,
 } from '../config/settings.js';
 
@@ -113,31 +118,28 @@ async function run() {
     );
   }
 
+  const BOARD_SOURCES = [
+    { name: 'Ashby',            enabled: FETCH_ASHBY,            fetch: () => fetchAshbyJobs({ daysAgo: DAYS_AGO }),            normalize: normalizeAshbyJob },
+    { name: 'Greenhouse',       enabled: FETCH_GREENHOUSE,       fetch: () => fetchGreenhouseJobs({ daysAgo: DAYS_AGO }),       normalize: normalizeGreenhouseJob },
+    { name: 'Lever',            enabled: FETCH_LEVER,            fetch: () => fetchLeverJobs({ daysAgo: DAYS_AGO }),            normalize: normalizeLeverJob },
+    { name: 'SmartRecruiters',  enabled: FETCH_SMARTRECRUITERS,  fetch: () => fetchSmartRecruitersJobs({ daysAgo: DAYS_AGO }),  normalize: normalizeSmartRecruitersJob },
+    { name: 'Gem',              enabled: FETCH_GEM,              fetch: () => fetchGemJobs({ daysAgo: DAYS_AGO }),              normalize: normalizeGemJob },
+  ];
+
+  const activeSources = BOARD_SOURCES.filter((s) => s.enabled);
+  console.log(`\n🔍 Fetching ${activeSources.length} job boards in parallel (last ${DAYS_AGO}d)…`);
+
+  const settled = await Promise.allSettled(activeSources.map((s) => s.fetch()));
+
   const failedSources = [];
-
-  if (FETCH_ASHBY) {
-    console.log(`\n🔍 Ashby job boards (last ${ASHBY_DAYS_AGO}d)`);
-    try {
-      const ashbyMatches = await fetchAshbyJobs({ daysAgo: ASHBY_DAYS_AGO });
-      const ashbyJobs = ashbyMatches.map(normalizeAshbyJob);
-      console.log(`   Found ${ashbyJobs.length} jobs`);
-      allJobs.push(...ashbyJobs);
-    } catch (err) {
-      console.error(`   Ashby search failed — ${err.message}`);
-      failedSources.push('Ashby');
-    }
-  }
-
-  if (FETCH_GREENHOUSE) {
-    console.log(`\n🔍 Greenhouse job boards (last ${GREENHOUSE_DAYS_AGO}d)`);
-    try {
-      const ghMatches = await fetchGreenhouseJobs({ daysAgo: GREENHOUSE_DAYS_AGO });
-      const ghJobs = ghMatches.map(normalizeGreenhouseJob);
-      console.log(`   Found ${ghJobs.length} jobs`);
-      allJobs.push(...ghJobs);
-    } catch (err) {
-      console.error(`   Greenhouse search failed — ${err.message}`);
-      failedSources.push('Greenhouse');
+  for (const { name, normalize, result } of activeSources.map((s, i) => ({ ...s, result: settled[i] }))) {
+    if (result.status === 'rejected') {
+      console.error(`   ❌ ${name} failed — ${result.reason?.message ?? result.reason}`);
+      failedSources.push(name);
+    } else {
+      const jobs = result.value.map(normalize);
+      console.log(`   ${name}: ${jobs.length} jobs`);
+      allJobs.push(...jobs);
     }
   }
 
