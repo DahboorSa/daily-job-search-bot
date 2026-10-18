@@ -1,12 +1,10 @@
 import { ashbyCompanies } from './ashbyCompanies.js';
-import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.ashbyhq.com/posting-api/job-board';
 export const ASHBY_DEFAULT_DAYS_AGO = 7;
 
-const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
-
-function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
+function isEngineeringJob(job, titleMatch) {
   return (
     (job.location?.includes('US') ||
       job.location?.includes('USA') ||
@@ -43,9 +41,7 @@ export async function fetchAshbyJobs({
   titleKeyword,
 } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-  const titleMatch = titleKeyword
-    ? (t) => t.includes(titleKeyword.toLowerCase())
-    : DEFAULT_TITLE_MATCH;
+  const titleMatch = buildTitleMatch(titleKeyword);
 
   const matches = [];
   const results = await Promise.allSettled(

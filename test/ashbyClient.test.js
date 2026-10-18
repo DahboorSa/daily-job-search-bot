@@ -15,7 +15,7 @@ const job = (over = {}) => ({
   ...over,
 });
 
-async function run(jobs, opts) {
+async function run(jobs, opts = { daysAgo: 7, titleKeyword: ['software engineer', 'backend'] }) {
   const restoreFetch = mockFetch((url) => {
     if (url.includes(`/${target}?`)) return { body: { jobs } };
     if (url.includes(`/${failing}?`)) return { ok: false, status: 500 };
@@ -38,17 +38,20 @@ test('fetchAshbyJobs keeps recent US engineering jobs', async () => {
 });
 
 test('fetchAshbyJobs filters by title, department, location and age', async () => {
-  const out = await run([
-    job({ title: 'Product Designer' }),
-    job({ department: 'Sales', team: 'Sales' }),
-    job({ location: 'Berlin' }),
-    job({ publishedAt: daysAgo(30) }),
-  ]);
+  const out = await run(
+    [
+      job({ title: 'Product Designer' }),
+      job({ department: 'Sales', team: 'Sales' }),
+      job({ location: 'Berlin' }),
+      job({ publishedAt: daysAgo(30) }),
+    ],
+    { daysAgo: 7, titleKeyword: 'software engineer' },
+  );
   assert.equal(out.length, 0);
 });
 
 test('fetchAshbyJobs keeps jobs with no publish date and survives bad companies', async () => {
-  const out = await run([job({ publishedAt: undefined })], { daysAgo: 7 });
+  const out = await run([job({ publishedAt: undefined })], { daysAgo: 7, titleKeyword: ['software engineer', 'backend'] });
   assert.equal(out.length, 1);
 });
 

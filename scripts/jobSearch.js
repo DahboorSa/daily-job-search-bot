@@ -119,11 +119,11 @@ async function run() {
   }
 
   const BOARD_SOURCES = [
-    { name: 'Ashby',            enabled: FETCH_ASHBY,            fetch: () => fetchAshbyJobs({ daysAgo: DAYS_AGO }),            normalize: normalizeAshbyJob },
-    { name: 'Greenhouse',       enabled: FETCH_GREENHOUSE,       fetch: () => fetchGreenhouseJobs({ daysAgo: DAYS_AGO }),       normalize: normalizeGreenhouseJob },
-    { name: 'Lever',            enabled: FETCH_LEVER,            fetch: () => fetchLeverJobs({ daysAgo: DAYS_AGO }),            normalize: normalizeLeverJob },
-    { name: 'SmartRecruiters',  enabled: FETCH_SMARTRECRUITERS,  fetch: () => fetchSmartRecruitersJobs({ daysAgo: DAYS_AGO }),  normalize: normalizeSmartRecruitersJob },
-    { name: 'Gem',              enabled: FETCH_GEM,              fetch: () => fetchGemJobs({ daysAgo: DAYS_AGO }),              normalize: normalizeGemJob },
+    { name: 'Ashby',            enabled: FETCH_ASHBY,            fetch: () => fetchAshbyJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),            normalize: normalizeAshbyJob },
+    { name: 'Greenhouse',       enabled: FETCH_GREENHOUSE,       fetch: () => fetchGreenhouseJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),       normalize: normalizeGreenhouseJob },
+    { name: 'Lever',            enabled: FETCH_LEVER,            fetch: () => fetchLeverJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),            normalize: normalizeLeverJob },
+    { name: 'SmartRecruiters',  enabled: FETCH_SMARTRECRUITERS,  fetch: () => fetchSmartRecruitersJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),  normalize: normalizeSmartRecruitersJob },
+    { name: 'Gem',              enabled: FETCH_GEM,              fetch: () => fetchGemJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),              normalize: normalizeGemJob },
   ];
 
   const activeSources = BOARD_SOURCES.filter((s) => s.enabled);

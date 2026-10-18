@@ -15,7 +15,7 @@ const job = (over = {}) => ({
   ...over,
 });
 
-async function run(jobs, body = jobs) {
+async function run(jobs, body = jobs, opts = { titleKeyword: ['software engineer', 'backend'] }) {
   const restoreFetch = mockFetch((url) => {
     if (url.includes(`/${target}/`)) return { body };
     if (url.includes(`/${failing}/`)) return { ok: false, status: 404 };
@@ -24,7 +24,7 @@ async function run(jobs, body = jobs) {
   });
   const restoreConsole = silenceConsole();
   try {
-    return await fetchGemJobs({ daysAgo: 7 });
+    return await fetchGemJobs({ daysAgo: 7, ...opts });
   } finally {
     restoreFetch();
     restoreConsole();
@@ -42,12 +42,16 @@ test('fetchGemJobs keeps recent US engineering jobs', async () => {
 });
 
 test('fetchGemJobs filters by location, title and age', async () => {
-  const out = await run([
-    job({ location: { name: 'London, United Kingdom' } }),
-    job({ location: undefined }),
-    job({ title: 'Senior Product Designer' }),
-    job({ first_published_at: daysAgo(30) }),
-  ]);
+  const out = await run(
+    [
+      job({ location: { name: 'London, United Kingdom' } }),
+      job({ location: undefined }),
+      job({ title: 'Senior Product Designer' }),
+      job({ first_published_at: daysAgo(30) }),
+    ],
+    undefined,
+    { titleKeyword: 'software engineer' },
+  );
   assert.equal(out.length, 0);
 });
 

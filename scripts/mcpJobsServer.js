@@ -112,8 +112,7 @@ async function runJobsMcpServer(source) {
       inputSchema: z.object({
         title: z
           .string()
-          .optional()
-          .describe('Job title to search for (case-insensitive substring, e.g. "senior engineer", "backend"). Omit to use the default filter (software engineer or backend).'),
+          .describe('Job title to search for (case-insensitive substring, e.g. "senior software engineer", "backend", "data engineer").'),
         company: z
           .string()
           .optional()

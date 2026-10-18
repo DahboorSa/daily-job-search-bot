@@ -1,5 +1,5 @@
 import { greenhouseCompanies } from './greenhouseCompanies.js';
-import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 import { isUsLocation } from './jobUtils.js';
 
 const BASE_URL = 'https://boards-api.greenhouse.io/v1/boards';
@@ -16,9 +16,7 @@ function departmentNames(job) {
   );
 }
 
-const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
-
-function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
+function isEngineeringJob(job, titleMatch) {
   const departments = departmentNames(job);
   // Boards often omit departments, so only filter when one is listed
   const inEngineering =
@@ -52,9 +50,7 @@ export async function fetchGreenhouseJobs({
   titleKeyword,
 } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-  const titleMatch = titleKeyword
-    ? (t) => t.includes(titleKeyword.toLowerCase())
-    : DEFAULT_TITLE_MATCH;
+  const titleMatch = buildTitleMatch(titleKeyword);
 
   const matches = [];
   const results = await Promise.allSettled(

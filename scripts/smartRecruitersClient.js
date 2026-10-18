@@ -1,15 +1,13 @@
 import { smartRecruitersCompanies } from './smartRecruitersCompanies.js';
-import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.smartrecruiters.com/v1/companies';
 const PAGE_SIZE = 100; // API maximum
 const MAX_PAGES = 20;
 export const SMARTRECRUITERS_DEFAULT_DAYS_AGO = 7;
 
-const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
-
 // Department is often empty and function too broad, so filter on title only
-function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
+function isEngineeringJob(job, titleMatch) {
   const title = job.name?.toLowerCase() ?? '';
   return job.location?.country?.toLowerCase() === 'us' && titleMatch(title);
 }
@@ -42,9 +40,7 @@ async function fetchCompanyJobs(companyName) {
 // Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchSmartRecruitersJobs({ daysAgo = SMARTRECRUITERS_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-  const titleMatch = titleKeyword
-    ? (t) => t.includes(titleKeyword.toLowerCase())
-    : DEFAULT_TITLE_MATCH;
+  const titleMatch = buildTitleMatch(titleKeyword);
 
   const matches = [];
   const results = await Promise.allSettled(

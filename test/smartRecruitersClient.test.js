@@ -15,7 +15,7 @@ const job = (over = {}) => ({
   ...over,
 });
 
-async function run(handleTarget) {
+async function run(handleTarget, opts = { titleKeyword: ['software engineer', 'backend'] }) {
   const urls = [];
   const restoreFetch = mockFetch((url) => {
     urls.push(url);
@@ -26,7 +26,7 @@ async function run(handleTarget) {
   });
   const restoreConsole = silenceConsole();
   try {
-    return { out: await fetchSmartRecruitersJobs({ daysAgo: 7 }), urls };
+    return { out: await fetchSmartRecruitersJobs({ daysAgo: 7, ...opts }), urls };
   } finally {
     restoreFetch();
     restoreConsole();
@@ -51,6 +51,7 @@ test('fetchSmartRecruitersJobs filters by country, title and age', async () => {
       job({ name: 'Account Executive' }),
       job({ releasedDate: daysAgo(30) }),
     ]),
+    { titleKeyword: 'software engineer' },
   );
   assert.equal(out.length, 0);
 });

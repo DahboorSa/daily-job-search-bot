@@ -1,14 +1,12 @@
 import { gemCompanies } from './gemCompanies.js';
 import { isUsLocation } from './jobUtils.js';
-import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor } from './jobDefaults.js';
+import { NOT_SPECIFIED, UNKNOWN_LOCATION, FALLBACK_URL, jobTypeFor, buildTitleMatch } from './jobDefaults.js';
 
 const BASE_URL = 'https://api.gem.com/job_board/v0';
 export const GEM_DEFAULT_DAYS_AGO = 7;
 
-const DEFAULT_TITLE_MATCH = (t) => t.includes('software engineer') || t.includes('backend');
-
 // Departments are often empty, so filter on title only
-function isEngineeringJob(job, titleMatch = DEFAULT_TITLE_MATCH) {
+function isEngineeringJob(job, titleMatch) {
   const title = job.title?.toLowerCase() ?? '';
   return isUsLocation(job.location?.name) && titleMatch(title);
 }
@@ -33,9 +31,7 @@ async function fetchCompanyJobs(companyName) {
 // Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchGemJobs({ daysAgo = GEM_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-  const titleMatch = titleKeyword
-    ? (t) => t.includes(titleKeyword.toLowerCase())
-    : DEFAULT_TITLE_MATCH;
+  const titleMatch = buildTitleMatch(titleKeyword);
 
   const matches = [];
   const results = await Promise.allSettled(
