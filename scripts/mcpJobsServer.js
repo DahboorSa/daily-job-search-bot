@@ -35,7 +35,6 @@ export function createGetJobs(source, { afterFetch } = {}) {
     try {
       const matches = await fetchJobs({ daysAgo: effectiveDaysAgo, titleKeyword: title });
 
-      // Post-filter by company name (case-insensitive substring)
       const filtered = company
         ? matches.filter((m) => {
             const companyName = (toCsvColumns(m).companyName ?? m.companyName ?? '').toLowerCase();
@@ -167,7 +166,6 @@ async function runJobsMcpServer(source) {
   console.error(`${name} MCP Server running on stdio${WRITE_CSV ? ' (CSV export enabled)' : ''}`);
 }
 
-// Stdio MCP server whose `get_jobs` tool exports matches to CSV (Ashby, Greenhouse, Lever, SmartRecruiters + Gem)
 export function startJobsMcpServer(source) {
   runJobsMcpServer(source).catch((error) => {
     console.error('Fatal error in main():', error);

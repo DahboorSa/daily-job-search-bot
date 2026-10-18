@@ -118,6 +118,7 @@ async function run() {
     );
   }
 
+  // Each fetch returns { companyName, job }[]; normalize maps that to the shared job shape
   const BOARD_SOURCES = [
     { name: 'Ashby',            enabled: FETCH_ASHBY,            fetch: () => fetchAshbyJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),            normalize: normalizeAshbyJob },
     { name: 'Greenhouse',       enabled: FETCH_GREENHOUSE,       fetch: () => fetchGreenhouseJobs({ daysAgo: DAYS_AGO, titleKeyword: search_titles }),       normalize: normalizeGreenhouseJob },

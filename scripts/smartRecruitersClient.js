@@ -37,7 +37,6 @@ async function fetchCompanyJobs(companyName) {
   return jobs;
 }
 
-// Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchSmartRecruitersJobs({ daysAgo = SMARTRECRUITERS_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
   const titleMatch = buildTitleMatch(titleKeyword);

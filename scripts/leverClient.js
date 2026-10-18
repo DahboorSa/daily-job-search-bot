@@ -28,7 +28,6 @@ async function fetchCompanyJobs(companyName) {
   return Array.isArray(data) ? data : [];
 }
 
-// Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchLeverJobs({ daysAgo = LEVER_DEFAULT_DAYS_AGO, titleKeyword } = {}) {
   const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
   const titleMatch = buildTitleMatch(titleKeyword);

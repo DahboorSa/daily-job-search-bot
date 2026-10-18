@@ -44,7 +44,6 @@ async function fetchCompanyJobs(companyName) {
   return data.jobs || [];
 }
 
-// Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchGreenhouseJobs({
   daysAgo = GREENHOUSE_DEFAULT_DAYS_AGO,
   titleKeyword,

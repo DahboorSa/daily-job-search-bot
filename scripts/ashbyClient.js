@@ -35,7 +35,6 @@ async function fetchCompanyJobs(companyName) {
   return data.jobs || [];
 }
 
-// Returns US engineering jobs published within the window as { companyName, job }
 export async function fetchAshbyJobs({
   daysAgo = ASHBY_DEFAULT_DAYS_AGO,
   titleKeyword,
@@ -73,7 +72,6 @@ function salaryMinFor(job) {
   return salary?.minValue;
 }
 
-// Same job shape as normalizeJob() in jobUtils.js
 export function normalizeAshbyJob({ companyName, job }) {
   return {
     title: job.title,
