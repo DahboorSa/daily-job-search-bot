@@ -154,6 +154,16 @@ const mcpServer = createMcpHandler((serverInfo) => {
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname === '/.well-known/glama.json') {
+      return new Response(
+        JSON.stringify({
+          $schema: 'https://glama.ai/mcp/schemas/connector.json',
+          claim: 'glama_claim_T-hTp7f7cqJL14oanTVvbaRMr7Q30FBN',
+        }),
+        { headers: { 'Content-Type': 'application/json' } },
+      );
+    }
     return mcpServer.fetch(request, env, ctx);
   },
 };
