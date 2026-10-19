@@ -19,4 +19,6 @@ export const leverCompanies = [
   'paytm',
   'veeva',
   'nitra',
+  'zeta',
+  'angellist',
 ];

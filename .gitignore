@@ -21,6 +21,9 @@ data/gem_jobs_record.csv
 # Editor
 .vscode/
 
+# Local notes — personal, not for repo
+notes/
+
 # macOS
 .DS_Store
 .wrangler/

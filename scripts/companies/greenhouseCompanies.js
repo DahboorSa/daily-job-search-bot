@@ -1,4 +1,5 @@
 export const greenhouseCompanies = [
+  'thefarmersdog',
   'centralreach',
   'smartsheet',
   'novacredit',
@@ -42,4 +43,6 @@ export const greenhouseCompanies = [
   'airtable',
   'fivetran',
   'lattice',
+  'doordashusa',
+  'khanacademy',
 ];

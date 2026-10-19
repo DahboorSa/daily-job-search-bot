@@ -12,7 +12,10 @@ import { greenhouseCompanies } from '../scripts/companies/greenhouseCompanies.js
 import { fetchGreenhouseJobs } from '../scripts/greenhouseClient.js';
 
 import { smartRecruitersCompanies } from '../scripts/companies/smartRecruitersCompanies.js';
-import { fetchSmartRecruitersJobs, smartRecruitersJobUrl } from '../scripts/smartRecruitersClient.js';
+import {
+  fetchSmartRecruitersJobs,
+  smartRecruitersJobUrl,
+} from '../scripts/smartRecruitersClient.js';
 
 import { gemCompanies } from '../scripts/companies/gemCompanies.js';
 import { fetchGemJobs } from '../scripts/gemClient.js';
@@ -23,7 +26,18 @@ const sources = [
     toolTitle: 'Ashby Jobs',
     source: {
       name: 'Ashby',
-      csvColumns: ['companyName', 'title', 'team', 'employmentType', 'location', 'country', 'isRemote', 'compensation', 'publishedAt', 'jobUrl'],
+      csvColumns: [
+        'companyName',
+        'title',
+        'team',
+        'employmentType',
+        'location',
+        'country',
+        'isRemote',
+        'compensation',
+        'publishedAt',
+        'jobUrl',
+      ],
       toCsvColumns: ({ companyName, job }) => ({
         companyName,
         title: job.title,
@@ -32,7 +46,10 @@ const sources = [
         location: job.location,
         country: job.address?.postalAddress?.addressCountry,
         isRemote: job.isRemote,
-        compensation: job.compensation?.compensationTierSummary || job.compensation?.scrapeableCompensationSalarySummary || 'No compensation',
+        compensation:
+          job.compensation?.compensationTierSummary ||
+          job.compensation?.scrapeableCompensationSalarySummary ||
+          'No compensation',
         publishedAt: job.publishedAt,
         jobUrl: job.jobUrl,
       }),
@@ -46,7 +63,20 @@ const sources = [
     toolTitle: 'Lever Jobs',
     source: {
       name: 'Lever',
-      csvColumns: ['companyName', 'title', 'department', 'team', 'employmentType', 'location', 'country', 'workplaceType', 'salaryRange', 'publishedAt', 'jobUrl', 'applyUrl'],
+      csvColumns: [
+        'companyName',
+        'title',
+        'department',
+        'team',
+        'employmentType',
+        'location',
+        'country',
+        'workplaceType',
+        'salaryRange',
+        'publishedAt',
+        'jobUrl',
+        'applyUrl',
+      ],
       toCsvColumns: ({ companyName, job }) => ({
         companyName,
         title: job.text,
@@ -71,7 +101,15 @@ const sources = [
     toolTitle: 'Greenhouse Jobs',
     source: {
       name: 'Greenhouse',
-      csvColumns: ['companyName', 'title', 'department', 'office', 'location', 'publishedAt', 'jobUrl'],
+      csvColumns: [
+        'companyName',
+        'title',
+        'department',
+        'office',
+        'location',
+        'publishedAt',
+        'jobUrl',
+      ],
       toCsvColumns: ({ companyName, job }) => ({
         companyName,
         title: job.title,
@@ -91,7 +129,19 @@ const sources = [
     toolTitle: 'SmartRecruiters Jobs',
     source: {
       name: 'SmartRecruiters',
-      csvColumns: ['companyName', 'title', 'function', 'employmentType', 'experienceLevel', 'location', 'country', 'remote', 'hybrid', 'publishedAt', 'jobUrl'],
+      csvColumns: [
+        'companyName',
+        'title',
+        'function',
+        'employmentType',
+        'experienceLevel',
+        'location',
+        'country',
+        'remote',
+        'hybrid',
+        'publishedAt',
+        'jobUrl',
+      ],
       toCsvColumns: ({ companyName, job }) => ({
         companyName: job.company?.name ?? companyName,
         title: job.name,
@@ -115,7 +165,16 @@ const sources = [
     toolTitle: 'Gem Jobs',
     source: {
       name: 'Gem',
-      csvColumns: ['companyName', 'title', 'department', 'employmentType', 'location', 'locationType', 'publishedAt', 'jobUrl'],
+      csvColumns: [
+        'companyName',
+        'title',
+        'department',
+        'employmentType',
+        'location',
+        'locationType',
+        'publishedAt',
+        'jobUrl',
+      ],
       toCsvColumns: ({ companyName, job }) => ({
         companyName,
         title: job.title,
