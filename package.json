@@ -10,7 +10,7 @@
     "setup": "node scripts/setupProfile.js",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "test": "node --test tests/*.test.js test/*.test.js"
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",

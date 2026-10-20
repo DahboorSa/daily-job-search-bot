@@ -2,8 +2,6 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeLocation, createGetJobs } from '../scripts/jobsMcpTool.js';
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-
 function makeFetchJobs(jobs) {
   return async () => jobs;
 }
@@ -26,12 +24,9 @@ async function getJobs(jobs, params, sourceOverrides = {}) {
 }
 
 function titlesFrom(result) {
-  // summary is content[0], table is content[1] — count rows by checking filtered jobs
-  // easier: re-derive from the raw result by inspecting the summary
   return result;
 }
 
-// ── normalizeLocation ─────────────────────────────────────────────────────────
 
 describe('normalizeLocation', () => {
   test('maps "United States" to US', () => {
@@ -58,8 +53,6 @@ describe('normalizeLocation', () => {
     assert.equal(normalizeLocation('London'), 'London');
   });
 });
-
-// ── location filter via createGetJobs ─────────────────────────────────────────
 
 describe('location filter — country', () => {
   const jobs = [

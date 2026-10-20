@@ -73,4 +73,5 @@ export const greenhouseCompanies = [
   'helsing',
   'lightningai',
   'cloverhealth',
+  'cribl',
 ];
