@@ -1,4 +1,8 @@
 export const leverCompanies = [
+  'CollectlyInc',
+  'luxurypresence',
+  'finch',
+  'teamsnap',
   'curai',
   'matchgroup',
   'palantir',
@@ -21,4 +25,13 @@ export const leverCompanies = [
   'nitra',
   'zeta',
   'angellist',
+  'linkedin',
+  'whoop',
+  'aircall',
+  'entrata',
+  'voleon',
+  'theathletic',
+  'meesho',
+  'GoToGroup',
+  'trendyol',
 ];

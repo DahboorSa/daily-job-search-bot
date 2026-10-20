@@ -12,4 +12,12 @@ export const gemCompanies = [
   'felix',
   'narmi',
   'auger',
+  'modular',
+  'fabrichealth',
+  'fathom-org',
+  'fireflies',
+  'linktree',
+  'skypilot',
+  'accel',
+  'inception',
 ];

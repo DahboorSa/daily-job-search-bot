@@ -12,4 +12,9 @@ export const smartRecruitersCompanies = [
   'Freshworks',
   'Endava',
   'NielsenIQ',
+  'Dominos',
+  'TurnerTownsend',
+  'Eurofins',
+  'SGS',
+  'Continental',
 ];
