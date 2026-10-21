@@ -1,4 +1,7 @@
 export const ashbyCompanies = [
+  'quora',
+  'owner',
+  'garage',
   'inspiren',
   'astronomer',
   'january',
