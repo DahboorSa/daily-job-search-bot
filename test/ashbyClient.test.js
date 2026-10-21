@@ -5,7 +5,7 @@ import { ashbyCompanies } from '../scripts/companies/ashbyCompanies.js';
 import { mockFetch, silenceConsole } from './helpers.js';
 
 assert.ok(ashbyCompanies.length >= 3, 'tests need at least 3 companies in the list');
-const [target, failing, broken] = ashbyCompanies;
+const [target, failing, broken] = ['inspiren', 'astronomer', 'january'];
 const daysAgo = (n) => new Date(Date.now() - n * 864e5).toISOString();
 const job = (over = {}) => ({
   title: 'Software Engineer',
