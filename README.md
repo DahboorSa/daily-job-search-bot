@@ -249,21 +249,21 @@ export const FETCH_SMARTRECRUITERS = true;
 export const FETCH_GEM = true;
 ```
 
-| Setting | What it does |
-| --- | --- |
-| `MIN_MATCH_SCORE` | Minimum match score (0–100) to include a job. Lower = more results, higher = stronger matches. |
-| `MAX_JOBS_PER_RUN` | Max jobs processed per day, highest scores first. Keep this low while `GENERATE_RESUMES = true`. |
-| `GENERATE_RESUMES` | Set to `false` to skip `.docx` resumes — the email report still sends, without attachments. |
-| `DATE_POSTED` | How recent jobs to fetch via JSearch: `"today"`, `"3days"`, `"week"` or `"month"`. |
-| `FETCH_JSEARCH` | Set to `false` to skip JSearch (Indeed/LinkedIn/Glassdoor aggregator) — saves your monthly RapidAPI limit, without removing the `RAPIDAPI_KEY` secret. |
-| `SEND_EMAIL` | Set to `false` to skip the daily email — the dashboard still updates. |
-| `FETCH_GLASSDOOR` | Set to `false` to skip Glassdoor salary lookups — saves your monthly RapidAPI limit. |
-| `DAYS_AGO` | How many days back to look for postings across all company job boards (Ashby, Greenhouse, Lever, SmartRecruiters & Gem). |
-| `FETCH_ASHBY` | Set to `false` to skip Ashby company boards. |
-| `FETCH_GREENHOUSE` | Set to `false` to skip Greenhouse company boards. |
-| `FETCH_LEVER` | Set to `false` to skip Lever company boards. |
-| `FETCH_SMARTRECRUITERS` | Set to `false` to skip SmartRecruiters company boards. |
-| `FETCH_GEM` | Set to `false` to skip Gem company boards. |
+| Setting                 | What it does                                                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MIN_MATCH_SCORE`       | Minimum match score (0–100) to include a job. Lower = more results, higher = stronger matches.                                                         |
+| `MAX_JOBS_PER_RUN`      | Max jobs processed per day, highest scores first. Keep this low while `GENERATE_RESUMES = true`.                                                       |
+| `GENERATE_RESUMES`      | Set to `false` to skip `.docx` resumes — the email report still sends, without attachments.                                                            |
+| `DATE_POSTED`           | How recent jobs to fetch via JSearch: `"today"`, `"3days"`, `"week"` or `"month"`.                                                                     |
+| `FETCH_JSEARCH`         | Set to `false` to skip JSearch (Indeed/LinkedIn/Glassdoor aggregator) — saves your monthly RapidAPI limit, without removing the `RAPIDAPI_KEY` secret. |
+| `SEND_EMAIL`            | Set to `false` to skip the daily email — the dashboard still updates.                                                                                  |
+| `FETCH_GLASSDOOR`       | Set to `false` to skip Glassdoor salary lookups — saves your monthly RapidAPI limit.                                                                   |
+| `DAYS_AGO`              | How many days back to look for postings across all company job boards (Ashby, Greenhouse, Lever, SmartRecruiters & Gem).                               |
+| `FETCH_ASHBY`           | Set to `false` to skip Ashby company boards.                                                                                                           |
+| `FETCH_GREENHOUSE`      | Set to `false` to skip Greenhouse company boards.                                                                                                      |
+| `FETCH_LEVER`           | Set to `false` to skip Lever company boards.                                                                                                           |
+| `FETCH_SMARTRECRUITERS` | Set to `false` to skip SmartRecruiters company boards.                                                                                                 |
+| `FETCH_GEM`             | Set to `false` to skip Gem company boards.                                                                                                             |
 
 ### 🏢 Add or remove companies from the Ashby search
 
@@ -428,24 +428,24 @@ All five job-board searches are also bundled into a single **Cloudflare Worker**
 
 Each source is a separate tool on the same server:
 
-| Tool | Source |
-| --- | --- |
-| `get_ashby_jobs` | Ashby-hosted boards |
-| `get_lever_jobs` | Lever-hosted boards |
-| `get_greenhouse_jobs` | Greenhouse-hosted boards |
+| Tool                       | Source                        |
+| -------------------------- | ----------------------------- |
+| `get_ashby_jobs`           | Ashby-hosted boards           |
+| `get_lever_jobs`           | Lever-hosted boards           |
+| `get_greenhouse_jobs`      | Greenhouse-hosted boards      |
 | `get_smartrecruiters_jobs` | SmartRecruiters-hosted boards |
-| `get_gem_jobs` | Gem-hosted boards |
+| `get_gem_jobs`             | Gem-hosted boards             |
 
 All tools accept the same parameters:
 
-| Parameter | Required | Description |
-| --- | --- | --- |
-| `title` | ✅ | Job title to search (case-insensitive substring, e.g. `"senior software engineer"`) |
-| `location` | ✅ | City, country, or `"remote"` (e.g. `"San Francisco"`, `"United States"`, `"remote"`). Common country names are normalized automatically (`"United States"` → `US`, `"UK"` → `GB`, etc.) |
-| `company` | ❌ | Filter by company name substring. Omit to search all companies. |
-| `daysAgo` | ❌ | How many days back to look (default varies per board) |
-| `limit` | ❌ | Max rows to return (default 20, max 100) |
-| `offset` | ❌ | Rows to skip — use with `limit` for pagination; `nextOffset` in the summary tells you when more pages exist |
+| Parameter  | Required | Description                                                                                                                                                                             |
+| ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`    | ✅       | Job title to search (case-insensitive substring, e.g. `"senior software engineer"`)                                                                                                     |
+| `location` | ✅       | City, country, or `"remote"` (e.g. `"San Francisco"`, `"United States"`, `"remote"`). Common country names are normalized automatically (`"United States"` → `US`, `"UK"` → `GB`, etc.) |
+| `company`  | ❌       | Filter by company name substring. Omit to search all companies.                                                                                                                         |
+| `daysAgo`  | ❌       | How many days back to look (default varies per board)                                                                                                                                   |
+| `limit`    | ❌       | Max rows to return (default 20, max 100)                                                                                                                                                |
+| `offset`   | ❌       | Rows to skip — use with `limit` for pagination; `nextOffset` in the summary tells you when more pages exist                                                                             |
 
 ### Prerequisites
 
@@ -520,9 +520,9 @@ claude mcp add job-boards --transport sse https://job-boards-mcp.<your-account>.
 | RapidAPI limit hit           | Reduce searches or [upgrade your plan](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch/pricing)           |
 | Can't find App Password      | Enable 2-Step Verification in Google Account first                                                               |
 | Greenhouse board returns 404 | The token in `scripts/greenhouseCompanies.js` is wrong — check `boards-api.greenhouse.io/v1/boards/<token>/jobs` |
-| Lever board returns an error | The name in `scripts/leverCompanies.js` is wrong — check `api.lever.co/v0/postings/<name>?mode=json`            |
-| SmartRecruiters finds 0 jobs | The identifier in `scripts/smartRecruitersCompanies.js` may be wrong (it's case-sensitive) — check `totalFound` |
-| Gem board returns 404        | The slug in `scripts/gemCompanies.js` is wrong — check `api.gem.com/job_board/v0/<slug>/job_posts/`             |
+| Lever board returns an error | The name in `scripts/leverCompanies.js` is wrong — check `api.lever.co/v0/postings/<name>?mode=json`             |
+| SmartRecruiters finds 0 jobs | The identifier in `scripts/smartRecruitersCompanies.js` may be wrong (it's case-sensitive) — check `totalFound`  |
+| Gem board returns 404        | The slug in `scripts/gemCompanies.js` is wrong — check `api.gem.com/job_board/v0/<slug>/job_posts/`              |
 
 ---
 
@@ -555,6 +555,7 @@ claude mcp add job-boards --transport sse https://job-boards-mcp.<your-account>.
 - [ ] AI-powered job application package (tailored resume + cover letter per job)
 - [ ] Automated job application submission
 - [ ] Rejection detection via email parsing
+- [ ] https://api.rippling.com/platform/api/ats/v1/board/lineleap/jobs
 
 ---
 

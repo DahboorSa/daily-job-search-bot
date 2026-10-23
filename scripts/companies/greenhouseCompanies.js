@@ -1,4 +1,5 @@
 export const greenhouseCompanies = [
+  'seatgeek',
   'bitgo',
   'sigmacomputing',
   'workstream',
