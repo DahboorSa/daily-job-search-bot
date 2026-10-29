@@ -1,4 +1,5 @@
 export const leverCompanies = [
+  'logrocket',
   'CollectlyInc',
   'luxurypresence',
   'finch',

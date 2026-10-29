@@ -1,4 +1,9 @@
 export const ashbyCompanies = [
+  'clickhouse',
+  'traba',
+  'jump',
+  'orum',
+  'Vetcove',
   'polymarket',
   'twenty',
   'owner',

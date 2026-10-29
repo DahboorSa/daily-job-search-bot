@@ -1,4 +1,7 @@
 export const greenhouseCompanies = [
+  'mozilla',
+  'shopmy',
+  'resortpass',
   'seatgeek',
   'bitgo',
   'sigmacomputing',

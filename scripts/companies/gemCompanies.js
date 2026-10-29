@@ -1,4 +1,5 @@
 export const gemCompanies = [
+  'bigpanda',
   'bikky',
   'gem',
   'retool',
